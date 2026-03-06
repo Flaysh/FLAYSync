@@ -1,5 +1,5 @@
 // electron/main.js — full rewrite
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const { LinkBridge } = require('./link.cjs');
 
@@ -11,8 +11,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 300,
     height: 300,
-    minWidth: 200,
-    minHeight: 200,
+    minWidth: 150,
+    minHeight: 150,
     transparent: true,
     frame: false,
     alwaysOnTop: true,
@@ -72,4 +72,8 @@ ipcMain.handle('link-status', () => {
 
 ipcMain.on('set-always-on-top', (event, enabled) => {
   mainWindow.setAlwaysOnTop(enabled, enabled ? 'screen-saver' : undefined);
+});
+
+ipcMain.on('open-external', (event, url) => {
+  shell.openExternal(url);
 });

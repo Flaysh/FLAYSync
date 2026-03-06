@@ -437,6 +437,23 @@ body {
   filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.3));
 }
 
+/* Instagram Link */
+.instagram-link {
+  -webkit-app-region: no-drag;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(9px, 2.5vw, 12px);
+  color: var(--neon-violet);
+  text-decoration: none;
+  text-align: center;
+  letter-spacing: 0.1em;
+  transition: color 0.2s;
+  margin-top: 6px;
+}
+
+.instagram-link:hover {
+  color: var(--hot-pink);
+}
+
 /* BPM Split/Double Controls */
 .bpm-controls {
   position: absolute;
@@ -516,4 +533,18 @@ body {
 .toggle input:checked + .toggle-slider::before {
   transform: translateX(20px);
   background: var(--electric-blue);
+}
+
+/* Hide status text at very small sizes */
+@media (max-width: 179px), (max-height: 179px) {
+  .status {
+    display: none;
+  }
+  .beat-dot {
+    width: clamp(6px, 3vw, 10px);
+    height: clamp(6px, 3vw, 10px);
+  }
+  .bpm-display {
+    font-size: clamp(20px, 12vw, 28px);
+  }
 }

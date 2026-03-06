@@ -59,6 +59,7 @@ let canvasReady = false;
 let bpmMultiplier = 1;
 let noiseTime = 0;
 let onsetPulse = 0;
+let smoothedEnergy = 0;
 
 // --- Simple 2D noise (no dependency) ---
 function noise2D(x, y) {
@@ -187,16 +188,23 @@ function drawBlobVisualizer() {
   ctx.clearRect(0, 0, w, h);
 
   const freqData = audio.getFrequencyData();
-  let energy = 0;
+  let rawEnergy = 0;
   if (freqData) {
     for (let i = 0; i < freqData.length; i++) {
-      energy += freqData[i];
+      rawEnergy += freqData[i];
     }
-    energy = energy / (freqData.length * 255);
+    rawEnergy = rawEnergy / (freqData.length * 255);
   }
+  // Lowpass smoothing: fast attack, slow decay
+  if (rawEnergy > smoothedEnergy) {
+    smoothedEnergy = smoothedEnergy + (rawEnergy - smoothedEnergy) * 0.4;
+  } else {
+    smoothedEnergy = smoothedEnergy + (rawEnergy - smoothedEnergy) * 0.1;
+  }
+  const energy = smoothedEnergy;
 
   // Decay onset pulse
-  onsetPulse *= 0.92;
+  onsetPulse *= 0.88;
 
   const cx = w / 2;
   const cy = h / 2;
@@ -262,26 +270,30 @@ requestAnimationFrame(beatClockLoop);
 
 // --- Audio -> BPM Detection ---
 audio.onFeatures = (features) => {
-  if (tapMode) return;
+  try {
+    if (tapMode) return;
 
-  const now = performance.now();
-  const isOnset = onsetDetector.process(features, now);
+    const now = performance.now();
+    const isOnset = onsetDetector.process(features, now);
 
-  if (isOnset) {
-    bpmDetector.registerOnset(now);
-    onsetPulse = 1;
+    if (isOnset) {
+      bpmDetector.registerOnset(now);
+      onsetPulse = 1;
+    }
+
+    const result = bpmDetector.getBpm();
+    if (result.bpm !== null) {
+      updateBpm(result.bpm, result.confidence);
+    }
+
+    // Audio level
+    const rmsLevel = Math.min(1, (features.rms || 0) * 5);
+    audioLevelEl.style.width = `${rmsLevel * 100}%`;
+    audioLevelEl.classList.toggle('hot', rmsLevel > 0.7);
+    audioLevelEl.classList.toggle('clip', rmsLevel > 0.9);
+  } catch (err) {
+    // Prevent audio callback errors from crashing the app
   }
-
-  const result = bpmDetector.getBpm();
-  if (result.bpm !== null) {
-    updateBpm(result.bpm, result.confidence);
-  }
-
-  // Audio level
-  const rmsLevel = Math.min(1, (features.rms || 0) * 5);
-  audioLevelEl.style.width = `${rmsLevel * 100}%`;
-  audioLevelEl.classList.toggle('hot', rmsLevel > 0.7);
-  audioLevelEl.classList.toggle('clip', rmsLevel > 0.9);
 };
 
 function getDisplayBpm(bpm) {
@@ -450,6 +462,16 @@ closeBtn.addEventListener('click', () => {
   } else {
     window.close();
   }
+});
+
+// --- External Links ---
+document.querySelectorAll('a[target="_blank"]').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (window.flaysync && window.flaysync.openExternal) {
+      window.flaysync.openExternal(link.href);
+    }
+  });
 });
 
 // --- Link Status Polling ---
