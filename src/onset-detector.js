@@ -1,11 +1,13 @@
 class OnsetDetector {
   constructor(options = {}) {
-    this.minInterval = options.minInterval || 333; // 180 BPM cap
-    this.fluxWindowSize = options.fluxWindowSize || 20;
-    this.fluxMultiplier = options.fluxMultiplier || 1.5;
-    this.energyWindowSize = options.energyWindowSize || 20;
-    this.energyMultiplier = options.energyMultiplier || 1.3;
-    this.minRms = options.minRms || 0.003;
+    this.minInterval = options.minInterval || 180; // ms — allow fast onset rate
+    this.fluxWindowSize = options.fluxWindowSize || 43;
+    this.energyWindowSize = options.energyWindowSize || 43;
+    this.energyThresholdMultiplier = options.energyThresholdMultiplier || 1.4;
+    this.fluxThresholdMultiplier = options.fluxThresholdMultiplier || 1.5;
+    this.minRms = options.minRms || 0.005;
+    this.minEnergy = options.minEnergy || 0.001;
+    this.minFlux = options.minFlux || 0.001;
 
     this.fluxHistory = [];
     this.energyHistory = [];
@@ -17,33 +19,34 @@ class OnsetDetector {
     const energy = features.energy || 0;
     const rms = features.rms || 0;
 
-    this.fluxHistory.push(flux);
-    if (this.fluxHistory.length > this.fluxWindowSize) this.fluxHistory.shift();
-
     this.energyHistory.push(energy);
     if (this.energyHistory.length > this.energyWindowSize) this.energyHistory.shift();
 
-    if (this.energyHistory.length < 6) return false;
+    this.fluxHistory.push(flux);
+    if (this.fluxHistory.length > this.fluxWindowSize) this.fluxHistory.shift();
 
-    // Silence gate
-    if (rms < this.minRms) return false;
+    if (this.energyHistory.length < 8) return false;
 
     // Minimum interval
     if (timestamp - this.lastOnsetTime < this.minInterval) return false;
 
     // Adaptive thresholds
-    const meanFlux = this.fluxHistory.reduce((a, b) => a + b, 0) / this.fluxHistory.length;
     const meanEnergy = this.energyHistory.reduce((a, b) => a + b, 0) / this.energyHistory.length;
+    const meanFlux = this.fluxHistory.length > 0
+      ? this.fluxHistory.reduce((a, b) => a + b, 0) / this.fluxHistory.length
+      : 0;
 
-    const fluxExceeds = flux > meanFlux * this.fluxMultiplier && flux > 0.01;
-    const energyExceeds = energy > meanEnergy * this.energyMultiplier;
+    // Energy onset: energy spike above adaptive threshold + minimum RMS/energy
+    const isEnergyOnset = energy > meanEnergy * this.energyThresholdMultiplier
+      && energy > this.minEnergy
+      && rms > this.minRms;
 
-    // Both agree = high confidence onset
-    // Energy-only = fallback onset (spectralFlux may be unavailable/zero in some Meyda builds)
-    const hasFluxData = meanFlux > 0.001;
-    const isOnset = hasFluxData ? (fluxExceeds && energyExceeds) : energyExceeds;
+    // Flux onset: spectral flux spike
+    const isFluxOnset = flux > meanFlux * this.fluxThresholdMultiplier
+      && flux > this.minFlux;
 
-    if (isOnset) {
+    // Either is sufficient — OR logic matches the working version
+    if (isEnergyOnset || isFluxOnset) {
       this.lastOnsetTime = timestamp;
       return true;
     }

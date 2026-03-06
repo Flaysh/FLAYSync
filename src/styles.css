@@ -72,9 +72,8 @@ body {
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 12% 6% 8%;
+  padding: 14% 6% 10%;
   position: relative;
-  gap: 3%;
 }
 
 /* Scanline effect */
@@ -107,6 +106,9 @@ body {
 .beat-dots {
   display: flex;
   gap: clamp(10px, 4vw, 20px);
+  margin-bottom: clamp(6px, 2vh, 14px);
+  z-index: 3;
+  position: relative;
 }
 
 .beat-dot {
@@ -130,8 +132,8 @@ body {
 /* BPM Area — circular visualizer wrapping BPM */
 .bpm-area {
   position: relative;
-  width: clamp(140px, 62vw, 240px);
-  height: clamp(140px, 62vw, 240px);
+  width: clamp(130px, 56vw, 210px);
+  height: clamp(130px, 56vw, 210px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -140,10 +142,10 @@ body {
 
 .ring-visualizer {
   position: absolute;
-  top: -8%;
-  left: -8%;
-  width: 116%;
-  height: 116%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .bpm-center {
@@ -185,6 +187,9 @@ body {
   color: var(--text-dim);
   letter-spacing: 0.3em;
   text-transform: uppercase;
+  margin-top: clamp(6px, 2vh, 14px);
+  z-index: 3;
+  position: relative;
 }
 
 /* TAP Button */
@@ -203,6 +208,7 @@ body {
   cursor: pointer;
   letter-spacing: 0.2em;
   transition: all 0.15s;
+  z-index: 3;
 }
 
 .tap-btn:hover {
@@ -234,6 +240,7 @@ body {
   font-size: clamp(16px, 4vw, 22px);
   cursor: pointer;
   transition: color 0.2s;
+  z-index: 3;
 }
 
 .settings-btn:hover {
@@ -252,6 +259,7 @@ body {
   font-size: clamp(12px, 3vw, 18px);
   cursor: pointer;
   transition: color 0.2s;
+  z-index: 3;
 }
 
 .close-btn:hover {

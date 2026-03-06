@@ -57,7 +57,9 @@ function drawRingVisualizer() {
   const h = canvas.height;
   const cx = w / 2;
   const cy = h / 2;
-  const radius = Math.min(cx, cy) * 0.82;
+  // Inner radius where bars start — leave room for bars to extend outward within canvas
+  const innerRadius = Math.min(cx, cy) * 0.62;
+  const maxBarLen = Math.min(cx, cy) * 0.34;
 
   ctx.clearRect(0, 0, w, h);
 
@@ -66,19 +68,20 @@ function drawRingVisualizer() {
     return;
   }
 
-  const barCount = 90;
+  const barCount = 100;
   const step = Math.max(1, Math.floor(freqData.length / barCount));
   const angleStep = (Math.PI * 2) / barCount;
+  const barWidth = Math.max(2, (Math.PI * 2 * innerRadius) / barCount * 0.7);
 
   for (let i = 0; i < barCount; i++) {
     const value = freqData[Math.min(i * step, freqData.length - 1)] / 255;
     const angle = i * angleStep - Math.PI / 2;
-    const barLen = value * radius * 0.35 + radius * 0.02; // minimum bar length for full ring
+    const barLen = value * maxBarLen + 2; // minimum 2px so ring is always visible
 
-    const x1 = cx + Math.cos(angle) * radius;
-    const y1 = cy + Math.sin(angle) * radius;
-    const x2 = cx + Math.cos(angle) * (radius + barLen);
-    const y2 = cy + Math.sin(angle) * (radius + barLen);
+    const x1 = cx + Math.cos(angle) * innerRadius;
+    const y1 = cy + Math.sin(angle) * innerRadius;
+    const x2 = cx + Math.cos(angle) * (innerRadius + barLen);
+    const y2 = cy + Math.sin(angle) * (innerRadius + barLen);
 
     // Color gradient around the ring
     const t = i / barCount;
@@ -102,19 +105,19 @@ function drawRingVisualizer() {
 
     const alpha = 0.3 + value * 0.7;
     ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    ctx.lineWidth = Math.max(2, (w / barCount) * 0.8);
-    ctx.lineCap = 'round';
+    ctx.lineWidth = barWidth;
+    ctx.lineCap = 'butt';
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.stroke();
   }
 
-  // Subtle ring outline
-  ctx.strokeStyle = 'rgba(139, 92, 246, 0.15)';
+  // Subtle inner ring outline
+  ctx.strokeStyle = 'rgba(139, 92, 246, 0.12)';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2);
   ctx.stroke();
 
   requestAnimationFrame(drawRingVisualizer);

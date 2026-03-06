@@ -2,13 +2,13 @@ class BpmDetector {
   constructor(options = {}) {
     this.windowSize = options.windowSize || 10000;
     this.minBpm = options.minBpm || 60;
-    this.maxBpm = options.maxBpm || 180;
+    this.maxBpm = options.maxBpm || 200;
     this.onsets = [];
     this._lockedBpm = null;
-    this._lockTolerance = 0.05; // 5%
+    this._lockTolerance = 0.08; // 8% — more responsive to real changes
     this._jumpCount = 0;
     this._jumpTarget = null;
-    this._jumpThreshold = 3; // consecutive readings needed
+    this._jumpThreshold = 2; // consecutive readings needed — faster adaptation
     this._phaseOrigin = null; // timestamp of beat 1
   }
 
