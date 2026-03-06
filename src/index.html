@@ -7,35 +7,54 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <button class="close-btn" id="closeBtn">✕</button>
-    <button class="settings-btn" id="settingsBtn">⚙</button>
+  <!-- Splash Screen -->
+  <div class="splash" id="splash">
+    <img src="../assets/flaysh-logo.png" alt="FLAYSH" class="splash-logo">
+  </div>
 
-    <div class="beat-pulse" id="beatPulse"></div>
-    <div class="bpm-display" id="bpmDisplay">---</div>
-    <div class="bpm-label">B P M</div>
+  <!-- Main UI -->
+  <div class="container" id="mainUI" style="display: none;">
+    <button class="close-btn" id="closeBtn">&#x2715;</button>
+    <button class="settings-btn" id="settingsBtn">&#x2699;</button>
 
-    <canvas class="visualizer" id="visualizer"></canvas>
+    <!-- Beat Phase Dots -->
+    <div class="beat-dots">
+      <div class="beat-dot" id="beat0"></div>
+      <div class="beat-dot" id="beat1"></div>
+      <div class="beat-dot" id="beat2"></div>
+      <div class="beat-dot" id="beat3"></div>
+    </div>
 
-    <div class="status" id="status">INITIALIZING</div>
+    <!-- BPM Display with Circular Visualizer -->
+    <div class="bpm-area">
+      <canvas class="ring-visualizer" id="ringVisualizer"></canvas>
+      <div class="bpm-center">
+        <div class="bpm-display" id="bpmDisplay">---</div>
+        <div class="bpm-label">B P M</div>
+      </div>
+    </div>
+
+    <div class="status" id="status">LISTENING</div>
     <button class="tap-btn" id="tapBtn">TAP</button>
 
     <!-- Settings Panel -->
     <div class="settings-panel" id="settingsPanel">
-      <button class="close-btn" id="closeSettings">✕</button>
+      <button class="close-btn settings-close" id="closeSettings">&#x2715;</button>
       <label>AUDIO INPUT</label>
       <select id="audioDevice"></select>
       <label>BUFFER SIZE</label>
       <select id="bufferSize">
         <option value="512" selected>512</option>
         <option value="1024">1024</option>
-        <option value="2048">2048</option>
       </select>
       <div class="link-status" id="linkStatus">LINK: OFFLINE</div>
+      <img src="../assets/flaysh-logo.png" alt="FLAYSH" class="settings-logo">
     </div>
   </div>
+
   <script src="../node_modules/meyda/dist/web/meyda.js"></script>
-  <script src="bpm-detector-core.js"></script>
+  <script src="bpm-detector.js"></script>
+  <script src="onset-detector.js"></script>
   <script src="tap-tempo.js"></script>
   <script type="module" src="app.js"></script>
 </body>
