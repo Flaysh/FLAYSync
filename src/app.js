@@ -29,10 +29,16 @@ let isLocked = false;
 let tapMode = false;
 let tapTimeout;
 let lastBeatIndex = -1;
+let canvasReady = false;
 
 // --- Splash Screen ---
 setTimeout(() => {
   mainUI.style.display = '';
+  // Canvas must be sized AFTER mainUI is visible, otherwise getBoundingClientRect returns 0
+  requestAnimationFrame(() => {
+    resizeCanvas();
+    canvasReady = true;
+  });
 }, 1500);
 
 splash.addEventListener('animationend', (e) => {
@@ -44,20 +50,25 @@ splash.addEventListener('animationend', (e) => {
 // --- Circular Visualizer ---
 function resizeCanvas() {
   const rect = canvas.getBoundingClientRect();
+  if (rect.width === 0 || rect.height === 0) return;
   canvas.width = rect.width * devicePixelRatio;
   canvas.height = rect.height * devicePixelRatio;
 }
 
-resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 function drawRingVisualizer() {
-  const freqData = audio.getFrequencyData();
   const w = canvas.width;
   const h = canvas.height;
+
+  if (w === 0 || h === 0) {
+    requestAnimationFrame(drawRingVisualizer);
+    return;
+  }
+
+  const freqData = audio.getFrequencyData();
   const cx = w / 2;
   const cy = h / 2;
-  // Inner radius where bars start — leave room for bars to extend outward within canvas
   const innerRadius = Math.min(cx, cy) * 0.62;
   const maxBarLen = Math.min(cx, cy) * 0.34;
 
@@ -76,14 +87,13 @@ function drawRingVisualizer() {
   for (let i = 0; i < barCount; i++) {
     const value = freqData[Math.min(i * step, freqData.length - 1)] / 255;
     const angle = i * angleStep - Math.PI / 2;
-    const barLen = value * maxBarLen + 2; // minimum 2px so ring is always visible
+    const barLen = value * maxBarLen + 2;
 
     const x1 = cx + Math.cos(angle) * innerRadius;
     const y1 = cy + Math.sin(angle) * innerRadius;
     const x2 = cx + Math.cos(angle) * (innerRadius + barLen);
     const y2 = cy + Math.sin(angle) * (innerRadius + barLen);
 
-    // Color gradient around the ring
     const t = i / barCount;
     let r, g, b;
     if (t < 0.33) {
@@ -126,7 +136,6 @@ function drawRingVisualizer() {
 requestAnimationFrame(drawRingVisualizer);
 
 // --- Independent Beat Clock for Dots ---
-// Runs on rAF, ticks dots based on locked BPM phase regardless of onset detection
 function beatClockLoop() {
   if (currentBpm !== null && currentBpm > 0) {
     const now = performance.now();
@@ -216,7 +225,6 @@ function handleTap() {
 
   if (tapTempo.isLocked() && bpm !== null) {
     tapMode = true;
-    // Set phase origin on tap lock so dots work immediately
     bpmDetector._lockedBpm = bpm;
     bpmDetector._phaseOrigin = performance.now();
     updateBpm(bpm, 1.0);
@@ -238,7 +246,6 @@ function handleResync() {
   if (window.flaysync) {
     window.flaysync.resyncBeat();
   }
-  // Flash all dots briefly
   beatDots.forEach(dot => dot.classList.add('active'));
   setTimeout(() => {
     beatDots.forEach(dot => dot.classList.remove('active'));
@@ -303,7 +310,6 @@ function pollLinkStatus() {
 }
 
 // --- Beat Phase to Link ---
-// Send beat phase to Link continuously when locked
 function sendBeatPhaseLoop() {
   if (currentBpm !== null && isLocked && window.flaysync) {
     const phase = bpmDetector.getPhase(performance.now());

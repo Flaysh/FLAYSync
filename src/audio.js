@@ -38,7 +38,7 @@ export class AudioEngine {
         audioContext: this.audioContext,
         source: this.source,
         bufferSize: bufferSize,
-        featureExtractors: ['rms', 'energy', 'spectralFlux'],
+        featureExtractors: ['rms', 'energy', 'spectralFlux', 'spectralCentroid'],
         callback: (features) => {
           if (this.onFeatures) this.onFeatures(features);
         },
