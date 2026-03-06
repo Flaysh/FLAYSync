@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLAYSync — Real-time BPM Sync for VJs</title>
+  <meta name="description" content="Detect tempo from any audio and sync BPM + beat phase to Resolume Arena via Ableton Link. $10 one-time purchase.">
+  <meta property="og:title" content="FLAYSync — Real-time BPM Sync for VJs">
+  <meta property="og:description" content="Auto BPM detection, beat phase tracking, Ableton Link sync. Built for VJs.">
+  <meta property="og:image" content="/assets/FLAYSync-logo.png">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="/assets/icon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Hero -->
+  <section class="hero" id="hero">
+    <canvas class="hero-blob" id="heroBlob"></canvas>
+    <div class="hero-scanlines"></div>
+    <div class="hero-content">
+      <div class="hero-demo-ui">
+        <div class="demo-beat-dots">
+          <span class="demo-dot" id="demoDot0"></span>
+          <span class="demo-dot" id="demoDot1"></span>
+          <span class="demo-dot" id="demoDot2"></span>
+          <span class="demo-dot" id="demoDot3"></span>
+        </div>
+        <div class="demo-bpm" id="demoBpm">128.0</div>
+        <div class="demo-bpm-label">B P M</div>
+      </div>
+      <h1 class="hero-title">Real-time BPM sync<br>for VJs</h1>
+      <p class="hero-sub">Detects tempo from any audio input and syncs BPM + beat phase to Resolume Arena via Ableton Link.</p>
+      <a class="cta-btn" href="https://flaysh.gumroad.com/l/flaysync" data-gumroad-overlay-checkout="true">Get FLAYSync — $10</a>
+    </div>
+  </section>
+
+  <!-- Video -->
+  <section class="video-section" id="video">
+    <div class="video-wrapper">
+      <video autoplay loop muted playsinline>
+        <source src="assets/demo.mp4" type="video/mp4">
+      </video>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features" id="features">
+    <h2 class="section-title">Features</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">&#9835;</div>
+        <h3>Auto BPM Detection</h3>
+        <p>Spectral flux + energy analysis detects tempo from any audio input — line-in, audio interface, or mic.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#8635;</div>
+        <h3>Ableton Link Sync</h3>
+        <p>Broadcasts BPM + beat phase over Link. Connects to Resolume Arena, Ableton Live, and any Link-enabled app.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9757;</div>
+        <h3>Tap Tempo Hint</h3>
+        <p>Tap to guide detection toward the correct BPM range. Resolves half/double-time ambiguity instantly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9679;</div>
+        <h3>Beat Phase Tracking</h3>
+        <p>4 dots show which beat in the 4/4 bar is playing. Your visuals know exactly where in the bar the music is.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#8982;</div>
+        <h3>Always-on-Top Overlay</h3>
+        <p>Compact, resizable window sits on top of your VJ software. Minimum 150x150px footprint.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&times;2</div>
+        <h3>Half / Double Time</h3>
+        <p>Instantly switch between half-time and double-time with one click.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works" id="how">
+    <h2 class="section-title">How It Works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Launch</h3>
+        <p>Open FLAYSync and select your audio input device.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Play Music</h3>
+        <p>BPM is detected automatically. Tap Space to help lock tempo.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Sync</h3>
+        <p>When BPM locks, it syncs to Resolume and any Ableton Link app instantly.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download -->
+  <section class="download" id="download">
+    <h2 class="section-title">Get FLAYSync</h2>
+    <p class="download-price">$10 <span class="price-note">one-time purchase</span></p>
+    <p class="download-platforms">macOS 10.15+ &bull; Windows 10+</p>
+    <a class="cta-btn cta-btn-large" href="https://flaysh.gumroad.com/l/flaysync" data-gumroad-overlay-checkout="true">Buy Now — $10</a>
+    <a class="github-link" href="https://github.com/flaysh/FLAYSync" target="_blank" rel="noopener">Open source on GitHub &#8594;</a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <a href="https://www.instagram.com/flaysh_/" target="_blank" rel="noopener" class="footer-logo-link">
+      <img src="assets/flaysh-logo.png" alt="FLAYSH" class="footer-logo">
+    </a>
+    <div class="footer-links">
+      <a href="https://github.com/flaysh/FLAYSync" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.instagram.com/flaysh_/" target="_blank" rel="noopener">Instagram</a>
+    </div>
+    <p class="footer-copy">MIT License &bull; Built by FLAYSH</p>
+  </footer>
+
+  <!-- Gumroad -->
+  <script src="https://gumroad.com/js/gumroad.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

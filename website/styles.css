@@ -1,0 +1,420 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --electric-blue: #00d4ff;
+  --hot-pink: #ff2d7b;
+  --deep-purple: #8b5cf6;
+  --neon-violet: #c084fc;
+  --chrome: #e2e8f0;
+  --chrome-dim: rgba(226, 232, 240, 0.3);
+  --bg-dark: #080414;
+  --bg-panel: rgba(20, 10, 40, 0.85);
+  --text-dim: rgba(139, 92, 246, 0.5);
+  --border-glow: rgba(0, 212, 255, 0.2);
+  --beat-green: #00ff88;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Share Tech Mono', monospace;
+  background: var(--bg-dark);
+  color: var(--chrome);
+  overflow-x: hidden;
+}
+
+/* ─── Scanlines ─── */
+.hero-scanlines {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(139, 92, 246, 0.03) 2px,
+    rgba(139, 92, 246, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ─── Hero ─── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero-blob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  height: 500px;
+  z-index: 1;
+  opacity: 0.7;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+  max-width: 700px;
+  padding: 0 24px;
+}
+
+.hero-demo-ui {
+  margin-bottom: 40px;
+}
+
+.demo-beat-dots {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.demo-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.25);
+  transition: all 0.1s;
+}
+
+.demo-dot.active {
+  background: var(--beat-green);
+  box-shadow: 0 0 10px var(--beat-green), 0 0 24px rgba(0, 255, 136, 0.5);
+}
+
+.demo-bpm {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(48px, 10vw, 80px);
+  font-weight: 900;
+  color: var(--electric-blue);
+  text-shadow:
+    0 0 20px var(--electric-blue),
+    0 0 40px rgba(0, 212, 255, 0.5),
+    0 0 80px rgba(0, 212, 255, 0.2);
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+.demo-bpm-label {
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: 0.5em;
+  margin-top: 4px;
+}
+
+.hero-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(24px, 5vw, 48px);
+  font-weight: 700;
+  color: var(--chrome);
+  text-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+}
+
+.hero-sub {
+  font-size: clamp(13px, 2vw, 18px);
+  color: var(--chrome-dim);
+  max-width: 500px;
+  margin: 0 auto 32px;
+  line-height: 1.6;
+}
+
+/* ─── CTA Button ─── */
+.cta-btn {
+  display: inline-block;
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(14px, 2.5vw, 20px);
+  font-weight: 700;
+  color: var(--electric-blue);
+  border: 2px solid var(--electric-blue);
+  padding: 14px 40px;
+  text-decoration: none;
+  letter-spacing: 0.15em;
+  transition: all 0.3s;
+  background: rgba(0, 212, 255, 0.05);
+}
+
+.cta-btn:hover {
+  background: rgba(0, 212, 255, 0.15);
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.4), inset 0 0 30px rgba(0, 212, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.cta-btn-large {
+  font-size: clamp(16px, 3vw, 24px);
+  padding: 18px 56px;
+}
+
+/* ─── Video Section ─── */
+.video-section {
+  padding: 80px 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.video-wrapper {
+  max-width: 640px;
+  width: 100%;
+  border: 1px solid var(--border-glow);
+  box-shadow: 0 0 40px rgba(0, 212, 255, 0.15), 0 0 80px rgba(139, 92, 246, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.video-wrapper video {
+  width: 100%;
+  display: block;
+}
+
+/* ─── Section Titles ─── */
+.section-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(20px, 4vw, 36px);
+  font-weight: 700;
+  text-align: center;
+  color: var(--chrome);
+  text-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  letter-spacing: 0.2em;
+  margin-bottom: 48px;
+}
+
+/* ─── Features ─── */
+.features {
+  padding: 80px 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.feature-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glow);
+  padding: 28px 24px;
+  transition: all 0.3s;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.feature-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.feature-card:hover {
+  border-color: var(--deep-purple);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2), 0 0 40px rgba(0, 212, 255, 0.1);
+  transform: translateY(-4px);
+}
+
+.feature-icon {
+  font-size: 28px;
+  color: var(--electric-blue);
+  margin-bottom: 12px;
+}
+
+.feature-card h3 {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--neon-violet);
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.feature-card p {
+  font-size: 13px;
+  color: var(--chrome-dim);
+  line-height: 1.6;
+}
+
+/* ─── How It Works ─── */
+.how-it-works {
+  padding: 80px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.steps {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.step {
+  text-align: center;
+  max-width: 200px;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.step.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.step-number {
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--electric-blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Orbitron', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--electric-blue);
+  margin: 0 auto 16px;
+  text-shadow: 0 0 10px var(--electric-blue);
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+}
+
+.step h3 {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--neon-violet);
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.step p {
+  font-size: 13px;
+  color: var(--chrome-dim);
+  line-height: 1.6;
+}
+
+/* ─── Download ─── */
+.download {
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.download-price {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(36px, 7vw, 60px);
+  font-weight: 900;
+  color: var(--electric-blue);
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+  margin-bottom: 8px;
+}
+
+.price-note {
+  font-size: clamp(14px, 2.5vw, 20px);
+  color: var(--chrome-dim);
+  font-weight: 400;
+}
+
+.download-platforms {
+  font-size: 14px;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+  margin-bottom: 32px;
+}
+
+.github-link {
+  display: inline-block;
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--text-dim);
+  text-decoration: none;
+  letter-spacing: 0.1em;
+  transition: color 0.2s;
+}
+
+.github-link:hover {
+  color: var(--neon-violet);
+}
+
+/* ─── Footer ─── */
+.footer {
+  padding: 48px 24px;
+  text-align: center;
+  border-top: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.footer-logo {
+  width: 60px;
+  opacity: 0.6;
+  filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.3));
+  transition: all 0.3s;
+}
+
+.footer-logo-link:hover .footer-logo {
+  opacity: 1;
+  filter:
+    drop-shadow(0 0 15px rgba(255, 45, 123, 0.6))
+    drop-shadow(0 0 30px rgba(0, 212, 255, 0.4));
+}
+
+.footer-links {
+  margin: 16px 0;
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+}
+
+.footer-links a {
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  transition: color 0.2s;
+}
+
+.footer-links a:hover {
+  color: var(--electric-blue);
+}
+
+.footer-copy {
+  font-size: 11px;
+  color: rgba(139, 92, 246, 0.3);
+  letter-spacing: 0.1em;
+}
+
+/* ─── Scroll reveal transition ─── */
+.feature-card,
+.step {
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 600px) {
+  .hero-blob {
+    width: 300px;
+    height: 300px;
+  }
+
+  .steps {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+}
