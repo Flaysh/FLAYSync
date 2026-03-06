@@ -156,6 +156,25 @@ async function init() {
     statusEl.textContent = 'NO AUDIO';
     console.error('Failed to start audio:', err);
   }
+
+  // Poll Link status every second
+  setInterval(async () => {
+    if (window.flayshlizer) {
+      try {
+        const status = await window.flayshlizer.getLinkStatus();
+        const linkStatusEl = document.getElementById('linkStatus');
+        if (status.enabled) {
+          linkStatusEl.textContent = 'LINK: ACTIVE';
+          linkStatusEl.classList.add('connected');
+        } else {
+          linkStatusEl.textContent = 'LINK: OFFLINE';
+          linkStatusEl.classList.remove('connected');
+        }
+      } catch (e) {
+        // Link not available
+      }
+    }
+  }, 1000);
 }
 
 init();
