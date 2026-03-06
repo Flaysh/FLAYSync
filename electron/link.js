@@ -1,7 +1,6 @@
 let AbletonLink;
 try {
-  const addon = require('abletonlink-addon');
-  AbletonLink = addon.AbletonLink;
+  AbletonLink = require('abletonlink-addon');
 } catch (err) {
   console.warn('abletonlink-addon not available, Link disabled:', err.message);
   AbletonLink = null;
@@ -42,9 +41,10 @@ class LinkBridge {
     }
     return {
       enabled: true,
-      tempo: this.link.getTempo(true),
-      beat: this.link.getBeat(true),
-      phase: this.link.getPhase(true),
+      tempo: this.link.getTempo(),
+      beat: this.link.getBeat(),
+      phase: this.link.getPhase(),
+      peers: this.link.getNumPeers(),
     };
   }
 

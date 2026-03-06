@@ -164,7 +164,8 @@ async function init() {
         const status = await window.flayshlizer.getLinkStatus();
         const linkStatusEl = document.getElementById('linkStatus');
         if (status.enabled) {
-          linkStatusEl.textContent = 'LINK: ACTIVE';
+          const peers = status.peers || 0;
+          linkStatusEl.textContent = `LINK: ACTIVE (${peers} ${peers === 1 ? 'PEER' : 'PEERS'})`;
           linkStatusEl.classList.add('connected');
         } else {
           linkStatusEl.textContent = 'LINK: OFFLINE';
