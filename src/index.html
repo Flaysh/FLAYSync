@@ -4,25 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>flayshlizer</title>
-  <style>
-    body {
-      margin: 0;
-      background: rgba(0, 0, 0, 0.85);
-      color: #0ff;
-      font-family: monospace;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      -webkit-app-region: drag;
-      user-select: none;
-    }
-    h1 { font-size: 48px; }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>-- BPM</h1>
+  <div class="container">
+    <button class="close-btn" id="closeBtn">✕</button>
+    <button class="settings-btn" id="settingsBtn">⚙</button>
+
+    <div class="beat-pulse" id="beatPulse"></div>
+    <div class="bpm-display" id="bpmDisplay">---</div>
+    <div class="bpm-label">B P M</div>
+    <div class="audio-bar-container">
+      <div class="audio-bar" id="audioBar"></div>
+    </div>
+    <div class="status" id="status">INITIALIZING</div>
+    <button class="tap-btn" id="tapBtn">TAP</button>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settingsPanel">
+      <button class="close-btn" id="closeSettings">✕</button>
+      <label>AUDIO INPUT</label>
+      <select id="audioDevice"></select>
+      <label>BUFFER SIZE</label>
+      <select id="bufferSize">
+        <option value="512">512</option>
+        <option value="1024" selected>1024</option>
+        <option value="2048">2048</option>
+      </select>
+      <div class="link-status" id="linkStatus">LINK: OFFLINE</div>
+    </div>
+  </div>
   <script src="../node_modules/meyda/dist/web/meyda.js"></script>
+  <script src="bpm-detector-core.js"></script>
+  <script src="tap-tempo.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

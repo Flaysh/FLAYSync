@@ -1,0 +1,236 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --neon-cyan: #0ff;
+  --neon-magenta: #f0f;
+  --neon-green: #0f0;
+  --bg-dark: rgba(10, 10, 20, 0.9);
+  --bg-panel: rgba(20, 20, 40, 0.8);
+  --text-dim: rgba(0, 255, 255, 0.4);
+  --border-glow: rgba(0, 255, 255, 0.2);
+}
+
+body {
+  font-family: 'Share Tech Mono', monospace;
+  background: var(--bg-dark);
+  color: var(--neon-cyan);
+  height: 100vh;
+  overflow: hidden;
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 12px;
+  position: relative;
+}
+
+/* BPM Display */
+.bpm-display {
+  font-family: 'Orbitron', monospace;
+  font-size: 64px;
+  font-weight: 700;
+  text-shadow: 0 0 20px var(--neon-cyan), 0 0 40px rgba(0, 255, 255, 0.3);
+  letter-spacing: 4px;
+  transition: text-shadow 0.1s;
+}
+
+.bpm-display.locked {
+  text-shadow: 0 0 20px var(--neon-green), 0 0 40px rgba(0, 255, 0, 0.3);
+  color: var(--neon-green);
+}
+
+.bpm-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 6px;
+  margin-top: 2px;
+}
+
+/* Beat Pulse Indicator */
+.beat-pulse {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  margin-bottom: 8px;
+  transition: background 0.05s, box-shadow 0.05s;
+}
+
+.beat-pulse.active {
+  background: var(--neon-green);
+  box-shadow: 0 0 10px var(--neon-green), 0 0 20px rgba(0, 255, 0, 0.5);
+}
+
+.beat-pulse.uncertain {
+  background: #666;
+}
+
+/* Audio Level Bar */
+.audio-bar-container {
+  width: 80%;
+  height: 3px;
+  background: var(--border-glow);
+  border-radius: 2px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.audio-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+  border-radius: 2px;
+  transition: width 0.05s;
+}
+
+/* Status */
+.status {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* TAP Button */
+.tap-btn {
+  -webkit-app-region: no-drag;
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glow);
+  color: var(--neon-cyan);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  padding: 4px 10px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.tap-btn:hover {
+  border-color: var(--neon-cyan);
+}
+
+.tap-btn.locked {
+  border-color: var(--neon-green);
+  color: var(--neon-green);
+}
+
+/* Settings gear */
+.settings-btn {
+  -webkit-app-region: no-drag;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.settings-btn:hover {
+  color: var(--neon-cyan);
+}
+
+/* Close button */
+.close-btn {
+  -webkit-app-region: no-drag;
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: #f44;
+}
+
+/* Settings Panel */
+.settings-panel {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-dark);
+  padding: 16px;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 10;
+}
+
+.settings-panel.open {
+  display: flex;
+}
+
+.settings-panel label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.settings-panel select {
+  -webkit-app-region: no-drag;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glow);
+  color: var(--neon-cyan);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  padding: 4px 8px;
+  outline: none;
+}
+
+.settings-panel select:focus {
+  border-color: var(--neon-cyan);
+}
+
+.link-status {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.link-status.connected {
+  color: var(--neon-green);
+}
+
+/* Scanline effect */
+.container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.1) 2px,
+    rgba(0, 0, 0, 0.1) 4px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
