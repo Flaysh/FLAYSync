@@ -12,6 +12,22 @@
     <img src="../assets/flaysh-logo.png" alt="FLAYSH" class="splash-logo">
   </div>
 
+  <!-- Device Selection Modal -->
+  <div class="device-modal" id="deviceModal" style="display: none;">
+    <div class="device-modal-inner">
+      <div class="device-modal-title">SELECT INPUT</div>
+      <label class="device-modal-label">AUDIO DEVICE</label>
+      <select id="deviceSelect"></select>
+      <label class="device-modal-label">BUFFER SIZE</label>
+      <select id="deviceBufferSize">
+        <option value="512">512</option>
+        <option value="1024" selected>1024</option>
+      </select>
+      <div class="device-modal-hint">Larger buffer = more accurate detection</div>
+      <button class="device-modal-start" id="deviceStartBtn">START</button>
+    </div>
+  </div>
+
   <!-- Main UI -->
   <div class="container" id="mainUI" style="display: none;">
     <button class="close-btn" id="closeBtn">&#x2715;</button>
@@ -25,7 +41,7 @@
       <div class="beat-dot" id="beat3"></div>
     </div>
 
-    <!-- BPM Display with Circular Visualizer -->
+    <!-- BPM Display with Blob Visualizer -->
     <div class="bpm-area">
       <canvas class="ring-visualizer" id="ringVisualizer"></canvas>
       <div class="bpm-center">
@@ -35,6 +51,13 @@
     </div>
 
     <div class="status" id="status">LISTENING</div>
+
+    <!-- BPM Split/Double -->
+    <div class="bpm-controls">
+      <button class="bpm-ctrl-btn" id="bpmHalf">/2</button>
+      <button class="bpm-ctrl-btn" id="bpmDouble">x2</button>
+    </div>
+
     <button class="tap-btn" id="tapBtn">TAP</button>
 
     <!-- Settings Panel -->
@@ -47,6 +70,11 @@
         <option value="512">512</option>
         <option value="1024" selected>1024</option>
       </select>
+      <label>ALWAYS ON TOP</label>
+      <label class="toggle">
+        <input type="checkbox" id="alwaysOnTop" checked>
+        <span class="toggle-slider"></span>
+      </label>
       <div class="link-status" id="linkStatus">LINK: OFFLINE</div>
       <img src="../assets/flaysh-logo.png" alt="FLAYSH" class="settings-logo">
     </div>

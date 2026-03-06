@@ -6,4 +6,5 @@ contextBridge.exposeInMainWorld('flaysync', {
   getLinkStatus: () => ipcRenderer.invoke('link-status'),
   resyncBeat: () => ipcRenderer.send('link-resync'),
   closeWindow: () => ipcRenderer.send('close-window'),
+  setAlwaysOnTop: (enabled) => ipcRenderer.send('set-always-on-top', enabled),
 });

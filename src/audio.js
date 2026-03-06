@@ -6,6 +6,7 @@ export class AudioEngine {
     this.stream = null;
     this.meydaAnalyzer = null;
     this.onFeatures = null;
+    this._prevSpectrum = null;
   }
 
   async listDevices() {
@@ -13,7 +14,7 @@ export class AudioEngine {
     return devices.filter(d => d.kind === 'audioinput');
   }
 
-  async start(deviceId = null, bufferSize = 512) {
+  async start(deviceId = null, bufferSize = 1024) {
     const constraints = {
       audio: {
         ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
@@ -27,24 +28,45 @@ export class AudioEngine {
     this.audioContext = new AudioContext({ sampleRate: 44100 });
     this.source = this.audioContext.createMediaStreamSource(this.stream);
 
-    // AnalyserNode for the visualizer
+    // Higher FFT for better frequency resolution in flux calculation
     this.analyserNode = this.audioContext.createAnalyser();
-    this.analyserNode.fftSize = 256;
+    this.analyserNode.fftSize = 512;
     this.source.connect(this.analyserNode);
 
-    // Meyda for feature extraction
+    // Meyda for RMS + energy only.
+    // DO NOT add 'spectralFlux' — Meyda v5.6.3 throws TypeError on first frame.
     if (typeof Meyda !== 'undefined') {
       this.meydaAnalyzer = Meyda.createMeydaAnalyzer({
         audioContext: this.audioContext,
         source: this.source,
         bufferSize: bufferSize,
-        featureExtractors: ['rms', 'energy', 'spectralFlux', 'spectralCentroid'],
+        featureExtractors: ['rms', 'energy'],
         callback: (features) => {
-          if (this.onFeatures) this.onFeatures(features);
+          if (this.onFeatures) {
+            features.spectralFlux = this._computeFlux();
+            this.onFeatures(features);
+          }
         },
       });
       this.meydaAnalyzer.start();
     }
+  }
+
+  _computeFlux() {
+    if (!this.analyserNode) return 0;
+    const data = new Uint8Array(this.analyserNode.frequencyBinCount);
+    this.analyserNode.getByteFrequencyData(data);
+    if (!this._prevSpectrum) {
+      this._prevSpectrum = data;
+      return 0;
+    }
+    let flux = 0;
+    for (let i = 0; i < data.length; i++) {
+      const diff = data[i] - this._prevSpectrum[i];
+      if (diff > 0) flux += diff;
+    }
+    this._prevSpectrum = data;
+    return flux / (data.length * 255);
   }
 
   getFrequencyData() {
@@ -63,5 +85,6 @@ export class AudioEngine {
     this.source = null;
     this.stream = null;
     this.audioContext = null;
+    this._prevSpectrum = null;
   }
 }

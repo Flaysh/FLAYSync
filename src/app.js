@@ -1,7 +1,13 @@
+// src/app.js
 import { AudioEngine } from './audio.js';
 
-// Globals loaded via script tags: BpmDetector, OnsetDetector, TapTempo
-
+// DOM references
+const splash = document.getElementById('splash');
+const deviceModal = document.getElementById('deviceModal');
+const deviceSelect = document.getElementById('deviceSelect');
+const deviceBufferSize = document.getElementById('deviceBufferSize');
+const deviceStartBtn = document.getElementById('deviceStartBtn');
+const mainUI = document.getElementById('mainUI');
 const bpmDisplay = document.getElementById('bpmDisplay');
 const statusEl = document.getElementById('status');
 const tapBtn = document.getElementById('tapBtn');
@@ -13,9 +19,10 @@ const audioDeviceSelect = document.getElementById('audioDevice');
 const bufferSizeSelect = document.getElementById('bufferSize');
 const canvas = document.getElementById('ringVisualizer');
 const ctx = canvas.getContext('2d');
-const splash = document.getElementById('splash');
-const mainUI = document.getElementById('mainUI');
 const beatDots = [0, 1, 2, 3].map(i => document.getElementById(`beat${i}`));
+const bpmHalfBtn = document.getElementById('bpmHalf');
+const bpmDoubleBtn = document.getElementById('bpmDouble');
+const alwaysOnTopToggle = document.getElementById('alwaysOnTop');
 
 // Engine instances
 const audio = new AudioEngine();
@@ -23,6 +30,7 @@ const bpmDetector = new BpmDetector();
 const onsetDetector = new OnsetDetector();
 const tapTempo = new TapTempo();
 
+// State
 let currentBpm = null;
 let currentConfidence = 0;
 let isLocked = false;
@@ -30,15 +38,49 @@ let tapMode = false;
 let tapTimeout;
 let lastBeatIndex = -1;
 let canvasReady = false;
+let bpmMultiplier = 1;
+let noiseTime = 0;
+let onsetPulse = 0;
 
-// --- Splash Screen ---
+// --- Simple 2D noise (no dependency) ---
+function noise2D(x, y) {
+  const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+  return (n - Math.floor(n)) * 2 - 1;
+}
+
+function smoothNoise(x, y) {
+  const ix = Math.floor(x);
+  const iy = Math.floor(y);
+  const fx = x - ix;
+  const fy = y - iy;
+  const sx = fx * fx * (3 - 2 * fx);
+  const sy = fy * fy * (3 - 2 * fy);
+  const n00 = noise2D(ix, iy);
+  const n10 = noise2D(ix + 1, iy);
+  const n01 = noise2D(ix, iy + 1);
+  const n11 = noise2D(ix + 1, iy + 1);
+  const nx0 = n00 + (n10 - n00) * sx;
+  const nx1 = n01 + (n11 - n01) * sx;
+  return nx0 + (nx1 - nx0) * sy;
+}
+
+function fbmNoise(x, y, octaves = 3) {
+  let val = 0;
+  let amp = 0.5;
+  let freq = 1;
+  for (let i = 0; i < octaves; i++) {
+    val += amp * smoothNoise(x * freq, y * freq);
+    amp *= 0.5;
+    freq *= 2;
+  }
+  return val;
+}
+
+// --- Splash -> Device Modal ---
 setTimeout(() => {
-  mainUI.style.display = '';
-  // Canvas must be sized AFTER mainUI is visible, otherwise getBoundingClientRect returns 0
-  requestAnimationFrame(() => {
-    resizeCanvas();
-    canvasReady = true;
-  });
+  splash.style.display = 'none';
+  deviceModal.style.display = 'flex';
+  populateDeviceModal();
 }, 1500);
 
 splash.addEventListener('animationend', (e) => {
@@ -47,7 +89,45 @@ splash.addEventListener('animationend', (e) => {
   }
 });
 
-// --- Circular Visualizer ---
+async function populateDeviceModal() {
+  try {
+    // Request permission first to get device labels
+    await navigator.mediaDevices.getUserMedia({ audio: true });
+    const devices = await audio.listDevices();
+    deviceSelect.innerHTML = devices
+      .map(d => `<option value="${d.deviceId}">${d.label || 'Unknown Device'}</option>`)
+      .join('');
+  } catch (err) {
+    deviceSelect.innerHTML = '<option>No audio devices found</option>';
+  }
+}
+
+deviceStartBtn.addEventListener('click', async () => {
+  const deviceId = deviceSelect.value;
+  const bufferSize = parseInt(deviceBufferSize.value);
+  deviceModal.style.display = 'none';
+  mainUI.style.display = '';
+
+  requestAnimationFrame(() => {
+    resizeCanvas();
+    canvasReady = true;
+  });
+
+  // Sync settings panel values
+  audioDeviceSelect.innerHTML = deviceSelect.innerHTML;
+  audioDeviceSelect.value = deviceId;
+  bufferSizeSelect.value = deviceBufferSize.value;
+
+  statusEl.textContent = 'LISTENING';
+  try {
+    await audio.start(deviceId, bufferSize);
+  } catch (err) {
+    statusEl.textContent = 'NO AUDIO';
+  }
+  pollLinkStatus();
+});
+
+// --- Blob Contour Visualizer ---
 function resizeCanvas() {
   const rect = canvas.getBoundingClientRect();
   if (rect.width === 0 || rect.height === 0) return;
@@ -57,85 +137,86 @@ function resizeCanvas() {
 
 window.addEventListener('resize', resizeCanvas);
 
-function drawRingVisualizer() {
+function drawBlobVisualizer() {
+  if (document.hidden) {
+    requestAnimationFrame(drawBlobVisualizer);
+    return;
+  }
+
   const w = canvas.width;
   const h = canvas.height;
 
   if (w === 0 || h === 0) {
-    requestAnimationFrame(drawRingVisualizer);
+    requestAnimationFrame(drawBlobVisualizer);
     return;
   }
-
-  const freqData = audio.getFrequencyData();
-  const cx = w / 2;
-  const cy = h / 2;
-  const innerRadius = Math.min(cx, cy) * 0.62;
-  const maxBarLen = Math.min(cx, cy) * 0.34;
 
   ctx.clearRect(0, 0, w, h);
 
-  if (!freqData) {
-    requestAnimationFrame(drawRingVisualizer);
-    return;
+  const freqData = audio.getFrequencyData();
+  let energy = 0;
+  if (freqData) {
+    for (let i = 0; i < freqData.length; i++) {
+      energy += freqData[i];
+    }
+    energy = energy / (freqData.length * 255);
   }
 
-  const barCount = 100;
-  const step = Math.max(1, Math.floor(freqData.length / barCount));
-  const angleStep = (Math.PI * 2) / barCount;
-  const barWidth = Math.max(2, (Math.PI * 2 * innerRadius) / barCount * 0.7);
+  // Decay onset pulse
+  onsetPulse *= 0.92;
 
-  for (let i = 0; i < barCount; i++) {
-    const value = freqData[Math.min(i * step, freqData.length - 1)] / 255;
-    const angle = i * angleStep - Math.PI / 2;
-    const barLen = value * maxBarLen + 2;
+  const cx = w / 2;
+  const cy = h / 2;
+  const baseRadius = Math.min(cx, cy) * 0.35;
+  const ringCount = 10;
+  const maxDistortion = Math.min(cx, cy) * 0.25;
 
-    const x1 = cx + Math.cos(angle) * innerRadius;
-    const y1 = cy + Math.sin(angle) * innerRadius;
-    const x2 = cx + Math.cos(angle) * (innerRadius + barLen);
-    const y2 = cy + Math.sin(angle) * (innerRadius + barLen);
+  noiseTime += 0.008;
 
-    const t = i / barCount;
-    let r, g, b;
-    if (t < 0.33) {
-      const p = t * 3;
-      r = Math.round(139 + (0 - 139) * p);
-      g = Math.round(92 + (212 - 92) * p);
-      b = Math.round(246 + (255 - 246) * p);
-    } else if (t < 0.66) {
-      const p = (t - 0.33) * 3;
-      r = Math.round(0 + (255 - 0) * p);
-      g = Math.round(212 + (45 - 212) * p);
-      b = Math.round(255 + (123 - 255) * p);
-    } else {
-      const p = (t - 0.66) * 3;
-      r = Math.round(255 + (139 - 255) * p);
-      g = Math.round(45 + (92 - 45) * p);
-      b = Math.round(123 + (246 - 123) * p);
-    }
+  for (let ring = 0; ring < ringCount; ring++) {
+    const t = ring / (ringCount - 1); // 0 (inner) to 1 (outer)
+    const ringRadius = baseRadius + (maxDistortion * 0.8) * t;
+    const distortAmount = (energy * 0.6 + 0.15 + onsetPulse * 0.3) * maxDistortion * (0.3 + t * 0.7);
 
-    const alpha = 0.3 + value * 0.7;
-    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    ctx.lineWidth = barWidth;
-    ctx.lineCap = 'butt';
+    // Color: deep purple (inner) -> electric cyan (outer)
+    const r = Math.round(60 + (0 - 60) * t);
+    const g = Math.round(30 + (212 - 30) * t);
+    const b = Math.round(180 + (255 - 180) * t);
+    const alpha = 0.15 + (1 - t) * 0.35 + energy * 0.3;
+
+    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${Math.min(1, alpha)})`;
+    ctx.lineWidth = Math.max(1, 2.5 - t * 1.5);
+    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${Math.min(0.6, alpha * 0.5)})`;
+    ctx.shadowBlur = 8 + energy * 15;
+
+    const points = 80;
     ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
+    for (let i = 0; i <= points; i++) {
+      const angle = (i / points) * Math.PI * 2;
+      const noiseVal = fbmNoise(
+        Math.cos(angle) * 1.5 + noiseTime + ring * 0.4,
+        Math.sin(angle) * 1.5 + noiseTime * 0.7 + ring * 0.4,
+        3
+      );
+      const r2 = ringRadius + noiseVal * distortAmount;
+      const x = cx + Math.cos(angle) * r2;
+      const y = cy + Math.sin(angle) * r2;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
     ctx.stroke();
   }
 
-  // Subtle inner ring outline
-  ctx.strokeStyle = 'rgba(139, 92, 246, 0.12)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2);
-  ctx.stroke();
+  // Reset shadow for next frame
+  ctx.shadowBlur = 0;
 
-  requestAnimationFrame(drawRingVisualizer);
+  requestAnimationFrame(drawBlobVisualizer);
 }
 
-requestAnimationFrame(drawRingVisualizer);
+requestAnimationFrame(drawBlobVisualizer);
 
-// --- Independent Beat Clock for Dots ---
+// --- Beat Clock ---
 function beatClockLoop() {
   if (currentBpm !== null && currentBpm > 0) {
     const now = performance.now();
@@ -146,7 +227,7 @@ function beatClockLoop() {
 }
 requestAnimationFrame(beatClockLoop);
 
-// --- Audio → BPM Detection ---
+// --- Audio -> BPM Detection ---
 audio.onFeatures = (features) => {
   if (tapMode) return;
 
@@ -155,6 +236,7 @@ audio.onFeatures = (features) => {
 
   if (isOnset) {
     bpmDetector.registerOnset(now);
+    onsetPulse = 1;
   }
 
   const result = bpmDetector.getBpm();
@@ -163,12 +245,16 @@ audio.onFeatures = (features) => {
   }
 };
 
+function getDisplayBpm(bpm) {
+  return Math.round(bpm * bpmMultiplier * 10) / 10;
+}
+
 function updateBpm(bpm, confidence) {
   currentBpm = bpm;
   currentConfidence = confidence;
   isLocked = confidence > 0.6;
 
-  bpmDisplay.textContent = bpm.toFixed(1);
+  bpmDisplay.textContent = getDisplayBpm(bpm).toFixed(1);
   bpmDisplay.classList.toggle('locked', isLocked);
 
   if (confidence > 0.6) {
@@ -180,7 +266,7 @@ function updateBpm(bpm, confidence) {
   }
 
   if (isLocked && window.flaysync) {
-    window.flaysync.setLinkTempo(bpm);
+    window.flaysync.setLinkTempo(getDisplayBpm(bpm));
   }
 }
 
@@ -194,6 +280,34 @@ function updateBeatDots(beatIndex, confidence) {
       dot.classList.add(confidence > 0.6 ? 'active' : 'uncertain');
     }
   });
+}
+
+// --- BPM Split/Double ---
+bpmHalfBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (bpmMultiplier === 0.5) {
+    bpmMultiplier = 1;
+  } else {
+    bpmMultiplier = 0.5;
+  }
+  updateMultiplierUI();
+  if (currentBpm !== null) updateBpm(currentBpm, currentConfidence);
+});
+
+bpmDoubleBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (bpmMultiplier === 2) {
+    bpmMultiplier = 1;
+  } else {
+    bpmMultiplier = 2;
+  }
+  updateMultiplierUI();
+  if (currentBpm !== null) updateBpm(currentBpm, currentConfidence);
+});
+
+function updateMultiplierUI() {
+  bpmHalfBtn.classList.toggle('active', bpmMultiplier === 0.5);
+  bpmDoubleBtn.classList.toggle('active', bpmMultiplier === 2);
 }
 
 // --- Tap Tempo ---
@@ -281,6 +395,13 @@ async function restartAudio() {
   await audio.start(deviceId, bufferSize);
 }
 
+// --- Always on Top ---
+alwaysOnTopToggle.addEventListener('change', () => {
+  if (window.flaysync) {
+    window.flaysync.setAlwaysOnTop(alwaysOnTopToggle.checked);
+  }
+});
+
 // --- Close ---
 closeBtn.addEventListener('click', () => {
   if (window.flaysync) {
@@ -299,7 +420,7 @@ function pollLinkStatus() {
       const el = document.getElementById('linkStatus');
       if (status.enabled) {
         const peers = status.peers || 0;
-        el.textContent = `LINK: ACTIVE (${peers} ${peers === 1 ? 'PEER' : 'PEERS'})`;
+        el.textContent = `LINK: ${peers} ${peers === 1 ? 'PEER' : 'PEERS'}`;
         el.classList.add('connected');
       } else {
         el.textContent = 'LINK: OFFLINE';
@@ -318,16 +439,3 @@ function sendBeatPhaseLoop() {
   setTimeout(sendBeatPhaseLoop, 50);
 }
 sendBeatPhaseLoop();
-
-// --- Init ---
-async function init() {
-  statusEl.textContent = 'LISTENING';
-  try {
-    await audio.start(null, parseInt(bufferSizeSelect.value));
-  } catch (err) {
-    statusEl.textContent = 'NO AUDIO';
-  }
-  pollLinkStatus();
-}
-
-init();

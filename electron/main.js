@@ -1,9 +1,11 @@
+// electron/main.js — full rewrite
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { LinkBridge } = require('./link');
 
 let mainWindow;
 const linkBridge = new LinkBridge();
+let resizeTimeout;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -28,10 +30,13 @@ function createWindow() {
   mainWindow.setAlwaysOnTop(true, 'screen-saver');
   mainWindow.setVisibleOnAllWorkspaces(true);
 
-  // Enforce square aspect ratio on resize
+  // Enforce square aspect ratio on resize (debounced)
   mainWindow.on('resize', () => {
-    const [width] = mainWindow.getSize();
-    mainWindow.setSize(width, width);
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      const [width] = mainWindow.getSize();
+      mainWindow.setSize(width, width);
+    }, 50);
   });
 }
 
@@ -63,4 +68,8 @@ ipcMain.on('link-resync', () => {
 
 ipcMain.handle('link-status', () => {
   return linkBridge.getStatus();
+});
+
+ipcMain.on('set-always-on-top', (event, enabled) => {
+  mainWindow.setAlwaysOnTop(enabled, enabled ? 'screen-saver' : undefined);
 });

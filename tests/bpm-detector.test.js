@@ -120,6 +120,58 @@ describe('BpmDetector', () => {
     });
   });
 
+  describe('autocorrelation', () => {
+    it('detects 128 BPM from slightly noisy onsets', () => {
+      const detector = new BpmDetector();
+      const intervalMs = 60000 / 128;
+      const now = 1000;
+      for (let i = 0; i < 16; i++) {
+        // Add jitter of +/- 15ms
+        const jitter = (i % 3 - 1) * 15;
+        detector.registerOnset(now + i * intervalMs + jitter);
+      }
+      const result = detector.getBpm();
+      assert.ok(result.bpm !== null);
+      assert.ok(result.bpm >= 123 && result.bpm <= 133, `Expected ~128, got ${result.bpm}`);
+      assert.ok(result.confidence > 0.5, `Expected decent confidence, got ${result.confidence}`);
+    });
+
+    it('handles mixed-in ghost onsets gracefully', () => {
+      const detector = new BpmDetector();
+      const intervalMs = 500; // 120 BPM
+      const now = 1000;
+      for (let i = 0; i < 12; i++) {
+        detector.registerOnset(now + i * intervalMs);
+        // Ghost onset at half-beat (should not confuse detector into 240 BPM)
+        if (i % 3 === 0) {
+          detector.registerOnset(now + i * intervalMs + 250);
+        }
+      }
+      const result = detector.getBpm();
+      assert.ok(result.bpm !== null);
+      // Should detect 120 not 240
+      assert.ok(result.bpm >= 115 && result.bpm <= 125, `Expected ~120, got ${result.bpm}`);
+    });
+  });
+
+  describe('phase correction', () => {
+    it('does not jitter phase on small timing errors', () => {
+      const detector = new BpmDetector();
+      const intervalMs = 500;
+      const now = 1000;
+      for (let i = 0; i < 8; i++) {
+        detector.registerOnset(now + i * intervalMs);
+      }
+      const phaseBefore = detector.getPhase(now + 8 * intervalMs);
+      // Register onset 5ms early (within dead zone)
+      detector.registerOnset(now + 8 * intervalMs - 5);
+      const phaseAfter = detector.getPhase(now + 8 * intervalMs);
+      // Phase should not have changed (5ms < 10ms dead zone)
+      assert.ok(Math.abs(phaseAfter - phaseBefore) < 0.05,
+        `Phase jittered: ${phaseBefore} -> ${phaseAfter}`);
+    });
+  });
+
   describe('reset', () => {
     it('clears all state', () => {
       const detector = new BpmDetector();
