@@ -7,8 +7,10 @@ const linkBridge = new LinkBridge();
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 320,
-    height: 180,
+    width: 420,
+    height: 240,
+    minWidth: 200,
+    minHeight: 120,
     transparent: true,
     frame: false,
     alwaysOnTop: true,

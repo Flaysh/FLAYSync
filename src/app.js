@@ -28,7 +28,9 @@ let tapTimeout;
 // --- BPM Detection ---
 audio.onFeatures = (features) => {
   const rms = features.rms || 0;
-  audioBar.style.width = `${Math.min(rms * 300, 100)}%`;
+  // Scale RMS to a visible range — typical mic input RMS is 0.001-0.3
+  const level = Math.min(Math.pow(rms, 0.6) * 150, 100);
+  audioBar.style.width = `${level}%`;
 
   if (tapMode) return;
 
