@@ -17,8 +17,8 @@
   --bg-panel: rgba(20, 10, 40, 0.85);
   --text-dim: rgba(139, 92, 246, 0.5);
   --border-glow: rgba(0, 212, 255, 0.2);
-  --pulse-color: var(--hot-pink);
-  --locked-color: var(--electric-blue);
+  --beat-green: #00ff88;
+  --beat-grey: rgba(139, 92, 246, 0.25);
 }
 
 body {
@@ -26,32 +26,139 @@ body {
   background: var(--bg-dark);
   color: var(--electric-blue);
   height: 100vh;
+  width: 100vw;
   overflow: hidden;
   -webkit-app-region: drag;
   user-select: none;
 }
 
+/* Splash Screen */
+.splash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: splashFade 1.5s ease-in-out forwards;
+  animation-delay: 1s;
+}
+
+.splash-logo {
+  width: 60%;
+  max-width: 200px;
+  opacity: 0;
+  animation: logoIn 0.8s ease-out 0.2s forwards;
+  filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5));
+}
+
+@keyframes logoIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes splashFade {
+  to { opacity: 0; pointer-events: none; }
+}
+
+/* Main Container */
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 4% 6%;
+  padding: 8% 6%;
   position: relative;
-  gap: 2%;
+  gap: 4%;
 }
 
-/* BPM Display — scales with window */
+/* Scanline effect */
+.container::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(139, 92, 246, 0.03) 2px,
+    rgba(139, 92, 246, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* Border glow */
+.container::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  pointer-events: none;
+  z-index: 99;
+}
+
+/* Beat Phase Dots */
+.beat-dots {
+  display: flex;
+  gap: clamp(8px, 3vw, 16px);
+}
+
+.beat-dot {
+  width: clamp(8px, 3vw, 14px);
+  height: clamp(8px, 3vw, 14px);
+  border-radius: 50%;
+  background: var(--beat-grey);
+  transition: background 0.05s, box-shadow 0.05s;
+}
+
+.beat-dot.active {
+  background: var(--beat-green);
+  box-shadow: 0 0 8px var(--beat-green), 0 0 20px rgba(0, 255, 136, 0.4);
+}
+
+.beat-dot.uncertain {
+  background: rgba(100, 100, 100, 0.5);
+  box-shadow: none;
+}
+
+/* BPM Area — circular visualizer wrapping BPM */
+.bpm-area {
+  position: relative;
+  width: clamp(120px, 55vw, 220px);
+  height: clamp(120px, 55vw, 220px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring-visualizer {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.bpm-center {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
 .bpm-display {
   font-family: 'Orbitron', monospace;
-  font-size: clamp(28px, 16vw, 120px);
+  font-size: clamp(24px, 12vw, 56px);
   font-weight: 900;
   color: var(--chrome);
   text-shadow:
     0 0 20px var(--deep-purple),
-    0 0 40px rgba(139, 92, 246, 0.4),
-    0 0 80px rgba(139, 92, 246, 0.15);
+    0 0 40px rgba(139, 92, 246, 0.4);
   letter-spacing: 0.05em;
   transition: color 0.3s, text-shadow 0.3s;
   line-height: 1;
@@ -61,64 +168,25 @@ body {
   color: var(--electric-blue);
   text-shadow:
     0 0 20px var(--electric-blue),
-    0 0 40px rgba(0, 212, 255, 0.5),
-    0 0 80px rgba(0, 212, 255, 0.2);
+    0 0 40px rgba(0, 212, 255, 0.5);
 }
 
 .bpm-label {
-  font-size: clamp(8px, 2.5vw, 16px);
+  font-size: clamp(7px, 2vw, 12px);
   color: var(--text-dim);
   letter-spacing: 0.5em;
-  margin-top: 0.5%;
-}
-
-/* Beat Pulse Indicator */
-.beat-pulse {
-  width: clamp(8px, 3vw, 18px);
-  height: clamp(8px, 3vw, 18px);
-  border-radius: 50%;
-  background: var(--text-dim);
-  margin-bottom: 2%;
-  transition: background 0.05s, box-shadow 0.05s;
-}
-
-.beat-pulse.active {
-  background: var(--hot-pink);
-  box-shadow: 0 0 12px var(--hot-pink), 0 0 30px rgba(255, 45, 123, 0.5);
-}
-
-.beat-pulse.uncertain {
-  background: rgba(139, 92, 246, 0.25);
-}
-
-/* Audio Level Bar */
-.audio-bar-container {
-  width: 75%;
-  height: clamp(2px, 0.6vh, 5px);
-  background: var(--border-glow);
-  border-radius: 3px;
-  margin-top: 2%;
-  overflow: hidden;
-}
-
-.audio-bar {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, var(--deep-purple), var(--hot-pink), var(--electric-blue));
-  border-radius: 3px;
-  transition: width 0.05s;
+  margin-top: 2px;
 }
 
 /* Status */
 .status {
-  font-size: clamp(7px, 2vw, 13px);
+  font-size: clamp(7px, 2vw, 11px);
   color: var(--text-dim);
-  margin-top: 1.5%;
   letter-spacing: 0.3em;
   text-transform: uppercase;
 }
 
-/* TAP Button — prominent, responsive */
+/* TAP Button */
 .tap-btn {
   -webkit-app-region: no-drag;
   position: absolute;
@@ -128,13 +196,12 @@ body {
   border: 1px solid var(--border-glow);
   color: var(--neon-violet);
   font-family: 'Orbitron', monospace;
-  font-size: clamp(12px, 3.5vw, 22px);
+  font-size: clamp(10px, 3vw, 16px);
   font-weight: 700;
-  padding: clamp(6px, 2vh, 16px) clamp(14px, 5vw, 36px);
+  padding: clamp(4px, 1.5vh, 10px) clamp(10px, 4vw, 24px);
   cursor: pointer;
   letter-spacing: 0.2em;
   transition: all 0.15s;
-  text-transform: uppercase;
 }
 
 .tap-btn:hover {
@@ -163,7 +230,7 @@ body {
   background: none;
   border: none;
   color: var(--text-dim);
-  font-size: clamp(14px, 3.5vw, 22px);
+  font-size: clamp(14px, 3.5vw, 20px);
   cursor: pointer;
   transition: color 0.2s;
 }
@@ -181,7 +248,7 @@ body {
   background: none;
   border: none;
   color: var(--text-dim);
-  font-size: clamp(12px, 3vw, 18px);
+  font-size: clamp(10px, 2.5vw, 16px);
   cursor: pointer;
   transition: color 0.2s;
 }
@@ -194,14 +261,11 @@ body {
 .settings-panel {
   display: none;
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: var(--bg-dark);
-  padding: 6%;
+  padding: 10% 8%;
   flex-direction: column;
-  gap: clamp(8px, 3vh, 16px);
+  gap: clamp(6px, 2.5vh, 14px);
   z-index: 10;
   overflow-y: auto;
 }
@@ -211,7 +275,7 @@ body {
 }
 
 .settings-panel label {
-  font-size: clamp(8px, 2vw, 12px);
+  font-size: clamp(7px, 1.8vw, 11px);
   letter-spacing: 0.2em;
   color: var(--text-dim);
   text-transform: uppercase;
@@ -223,8 +287,8 @@ body {
   border: 1px solid var(--border-glow);
   color: var(--electric-blue);
   font-family: 'Share Tech Mono', monospace;
-  font-size: clamp(10px, 2.5vw, 14px);
-  padding: clamp(3px, 1vh, 8px) clamp(6px, 2vw, 12px);
+  font-size: clamp(9px, 2.2vw, 13px);
+  padding: clamp(3px, 1vh, 6px) clamp(4px, 1.5vw, 10px);
   outline: none;
 }
 
@@ -232,43 +296,28 @@ body {
   border-color: var(--deep-purple);
 }
 
+.settings-close {
+  position: relative;
+  top: 0;
+  left: 0;
+  align-self: flex-start;
+}
+
 .link-status {
-  font-size: clamp(8px, 2vw, 12px);
+  font-size: clamp(7px, 1.8vw, 11px);
   color: var(--text-dim);
+  margin-top: auto;
 }
 
 .link-status.connected {
   color: var(--electric-blue);
 }
 
-/* Scanline effect */
-.container::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(139, 92, 246, 0.03) 2px,
-    rgba(139, 92, 246, 0.03) 4px
-  );
-  pointer-events: none;
-  z-index: 100;
-}
-
-/* Subtle border glow on the whole container */
-.container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border: 1px solid rgba(139, 92, 246, 0.15);
-  pointer-events: none;
-  z-index: 99;
+.settings-logo {
+  width: 40%;
+  max-width: 100px;
+  align-self: center;
+  margin-top: auto;
+  opacity: 0.6;
+  filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.3));
 }
