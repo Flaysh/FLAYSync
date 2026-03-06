@@ -1,9 +1,8 @@
 import { AudioEngine } from './audio.js';
-import { RealtimeBpmDetector } from './bpm-detector.js';
 
-// DOM elements
+// Globals loaded via script tags: BpmDetector, OnsetDetector, TapTempo
+
 const bpmDisplay = document.getElementById('bpmDisplay');
-const beatPulse = document.getElementById('beatPulse');
 const statusEl = document.getElementById('status');
 const tapBtn = document.getElementById('tapBtn');
 const settingsBtn = document.getElementById('settingsBtn');
@@ -12,104 +11,130 @@ const closeSettings = document.getElementById('closeSettings');
 const closeBtn = document.getElementById('closeBtn');
 const audioDeviceSelect = document.getElementById('audioDevice');
 const bufferSizeSelect = document.getElementById('bufferSize');
-const canvas = document.getElementById('visualizer');
+const canvas = document.getElementById('ringVisualizer');
 const ctx = canvas.getContext('2d');
+const splash = document.getElementById('splash');
+const mainUI = document.getElementById('mainUI');
+const beatDots = [0, 1, 2, 3].map(i => document.getElementById(`beat${i}`));
 
 // Engine instances
 const audio = new AudioEngine();
-const bpmDetector = new RealtimeBpmDetector();
-// TapTempo is loaded as a global from script tag
+const bpmDetector = new BpmDetector();
+const onsetDetector = new OnsetDetector();
 const tapTempo = new TapTempo();
 
 let currentBpm = null;
 let isLocked = false;
 let tapMode = false;
 let tapTimeout;
+let lastBeatIndex = -1;
 
-// --- Visualizer ---
+// --- Splash Screen ---
+setTimeout(() => {
+  mainUI.style.display = '';
+}, 1500);
+
+splash.addEventListener('animationend', (e) => {
+  if (e.animationName === 'splashFade') {
+    splash.style.display = 'none';
+  }
+});
+
+// --- Circular Visualizer ---
 function resizeCanvas() {
   const rect = canvas.getBoundingClientRect();
   canvas.width = rect.width * devicePixelRatio;
   canvas.height = rect.height * devicePixelRatio;
-  ctx.scale(devicePixelRatio, devicePixelRatio);
 }
 
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-function drawVisualizer() {
+function drawRingVisualizer() {
   const freqData = audio.getFrequencyData();
-  const rect = canvas.getBoundingClientRect();
-  const w = rect.width;
-  const h = rect.height;
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+  const radius = Math.min(cx, cy) * 0.85;
 
   ctx.clearRect(0, 0, w, h);
 
   if (!freqData) {
-    requestAnimationFrame(drawVisualizer);
+    requestAnimationFrame(drawRingVisualizer);
     return;
   }
 
-  const barCount = Math.min(freqData.length, 64);
-  const barWidth = w / barCount;
-  const gap = 1;
+  const barCount = 64;
+  const step = Math.floor(freqData.length / barCount);
 
   for (let i = 0; i < barCount; i++) {
-    const value = freqData[i] / 255;
-    const barHeight = value * h;
+    const value = freqData[i * step] / 255;
+    const angle = (i / barCount) * Math.PI * 2 - Math.PI / 2;
+    const barLen = value * radius * 0.3;
 
-    // Gradient from deep purple → hot pink → electric blue based on frequency
+    const x1 = cx + Math.cos(angle) * radius;
+    const y1 = cy + Math.sin(angle) * radius;
+    const x2 = cx + Math.cos(angle) * (radius + barLen);
+    const y2 = cy + Math.sin(angle) * (radius + barLen);
+
+    // Color gradient around the ring
     const t = i / barCount;
     let r, g, b;
-    if (t < 0.5) {
-      // purple to pink
-      const p = t * 2;
-      r = Math.round(139 + (255 - 139) * p);
-      g = Math.round(92 + (45 - 92) * p);
-      b = Math.round(246 + (123 - 246) * p);
+    if (t < 0.33) {
+      const p = t * 3;
+      r = Math.round(139 + (0 - 139) * p);
+      g = Math.round(92 + (212 - 92) * p);
+      b = Math.round(246 + (255 - 246) * p);
+    } else if (t < 0.66) {
+      const p = (t - 0.33) * 3;
+      r = Math.round(0 + (255 - 0) * p);
+      g = Math.round(212 + (45 - 212) * p);
+      b = Math.round(255 + (123 - 255) * p);
     } else {
-      // pink to blue
-      const p = (t - 0.5) * 2;
-      r = Math.round(255 + (0 - 255) * p);
-      g = Math.round(45 + (212 - 45) * p);
-      b = Math.round(123 + (255 - 123) * p);
+      const p = (t - 0.66) * 3;
+      r = Math.round(255 + (139 - 255) * p);
+      g = Math.round(45 + (92 - 45) * p);
+      b = Math.round(123 + (246 - 123) * p);
     }
 
-    const alpha = 0.4 + value * 0.6;
-    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    ctx.fillRect(
-      i * barWidth + gap / 2,
-      h - barHeight,
-      barWidth - gap,
-      barHeight
-    );
-
-    // Glow on top of each bar
-    if (value > 0.4) {
-      ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.6)`;
-      ctx.shadowBlur = 8;
-      ctx.fillRect(
-        i * barWidth + gap / 2,
-        h - barHeight,
-        barWidth - gap,
-        2
-      );
-      ctx.shadowBlur = 0;
-    }
+    const alpha = 0.3 + value * 0.7;
+    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    ctx.lineWidth = Math.max(1, (w / barCount) * 0.6);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
   }
 
-  requestAnimationFrame(drawVisualizer);
+  // Subtle ring outline
+  ctx.strokeStyle = 'rgba(139, 92, 246, 0.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  requestAnimationFrame(drawRingVisualizer);
 }
 
-requestAnimationFrame(drawVisualizer);
+requestAnimationFrame(drawRingVisualizer);
 
-// --- BPM Detection ---
+// --- Audio → BPM Detection ---
 audio.onFeatures = (features) => {
   if (tapMode) return;
 
-  const result = bpmDetector.processFeatures(features);
+  const now = performance.now();
+  const isOnset = onsetDetector.process(features, now);
+
+  if (isOnset) {
+    bpmDetector.registerOnset(now);
+  }
+
+  const result = bpmDetector.getBpm();
   if (result.bpm !== null) {
     updateBpm(result.bpm, result.confidence);
+    updateBeatDots(bpmDetector.getBeatIndex(now), result.confidence);
   }
 };
 
@@ -119,32 +144,31 @@ function updateBpm(bpm, confidence) {
 
   bpmDisplay.textContent = bpm.toFixed(1);
   bpmDisplay.classList.toggle('locked', isLocked);
-  statusEl.textContent = isLocked ? 'LOCKED' : 'LISTENING';
+
+  if (confidence > 0.6) {
+    statusEl.textContent = 'LOCKED';
+  } else if (confidence > 0.3) {
+    statusEl.textContent = 'UNCERTAIN';
+  } else {
+    statusEl.textContent = 'LISTENING';
+  }
 
   if (isLocked && window.flaysync) {
     window.flaysync.setLinkTempo(bpm);
   }
 }
 
-// --- Beat Pulse Animation ---
-let beatInterval = null;
+function updateBeatDots(beatIndex, confidence) {
+  if (beatIndex === lastBeatIndex) return;
+  lastBeatIndex = beatIndex;
 
-function startBeatPulse(bpm) {
-  if (beatInterval) clearInterval(beatInterval);
-  const ms = 60000 / bpm;
-  beatInterval = setInterval(() => {
-    beatPulse.classList.add('active');
-    setTimeout(() => beatPulse.classList.remove('active'), 80);
-  }, ms);
+  beatDots.forEach((dot, i) => {
+    dot.classList.remove('active', 'uncertain');
+    if (i === beatIndex) {
+      dot.classList.add(confidence > 0.6 ? 'active' : 'uncertain');
+    }
+  });
 }
-
-let lastPulseBpm = null;
-setInterval(() => {
-  if (currentBpm && currentBpm !== lastPulseBpm && isLocked) {
-    lastPulseBpm = currentBpm;
-    startBeatPulse(currentBpm);
-  }
-}, 500);
 
 // --- Tap Tempo ---
 tapBtn.addEventListener('click', (e) => {
@@ -153,7 +177,17 @@ tapBtn.addEventListener('click', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if (e.code === 'Space' && !settingsPanel.classList.contains('open')) {
+  if (settingsPanel.classList.contains('open')) {
+    if (e.code === 'Escape') {
+      settingsPanel.classList.remove('open');
+    }
+    return;
+  }
+
+  if (e.code === 'Space' && e.altKey) {
+    e.preventDefault();
+    handleResync();
+  } else if (e.code === 'Space') {
     e.preventDefault();
     handleTap();
   }
@@ -178,6 +212,19 @@ function handleTap() {
   }
 }
 
+function handleResync() {
+  const now = performance.now();
+  bpmDetector.resync(now);
+  if (window.flaysync) {
+    window.flaysync.resyncBeat();
+  }
+  // Flash all dots briefly
+  beatDots.forEach(dot => dot.classList.add('active'));
+  setTimeout(() => {
+    beatDots.forEach(dot => dot.classList.remove('active'));
+  }, 100);
+}
+
 // --- Settings Panel ---
 settingsBtn.addEventListener('click', () => {
   settingsPanel.classList.add('open');
@@ -195,21 +242,17 @@ async function populateDevices() {
     .join('');
 }
 
-audioDeviceSelect.addEventListener('change', async () => {
-  const deviceId = audioDeviceSelect.value;
-  const bufferSize = parseInt(bufferSizeSelect.value);
-  audio.stop();
-  bpmDetector.reset();
-  await audio.start(deviceId, bufferSize);
-});
+audioDeviceSelect.addEventListener('change', restartAudio);
+bufferSizeSelect.addEventListener('change', restartAudio);
 
-bufferSizeSelect.addEventListener('change', async () => {
+async function restartAudio() {
   const deviceId = audioDeviceSelect.value;
   const bufferSize = parseInt(bufferSizeSelect.value);
   audio.stop();
   bpmDetector.reset();
+  onsetDetector.reset();
   await audio.start(deviceId, bufferSize);
-});
+}
 
 // --- Close ---
 closeBtn.addEventListener('click', () => {
@@ -220,40 +263,34 @@ closeBtn.addEventListener('click', () => {
   }
 });
 
-// --- Start ---
+// --- Link Status Polling ---
+function pollLinkStatus() {
+  if (!window.flaysync) return;
+  setInterval(async () => {
+    try {
+      const status = await window.flaysync.getLinkStatus();
+      const el = document.getElementById('linkStatus');
+      if (status.enabled) {
+        const peers = status.peers || 0;
+        el.textContent = `LINK: ACTIVE (${peers} ${peers === 1 ? 'PEER' : 'PEERS'})`;
+        el.classList.add('connected');
+      } else {
+        el.textContent = 'LINK: OFFLINE';
+        el.classList.remove('connected');
+      }
+    } catch (e) {}
+  }, 1000);
+}
+
+// --- Init ---
 async function init() {
   statusEl.textContent = 'LISTENING';
-  console.log('[init] Starting audio engine...');
-  console.log('[init] Meyda available:', typeof Meyda !== 'undefined');
-  console.log('[init] BpmDetector available:', typeof BpmDetector !== 'undefined');
-
   try {
     await audio.start(null, parseInt(bufferSizeSelect.value));
-    console.log('[init] Audio started successfully');
   } catch (err) {
     statusEl.textContent = 'NO AUDIO';
-    console.error('[init] Failed to start audio:', err);
   }
-
-  // Poll Link status every second
-  setInterval(async () => {
-    if (window.flaysync) {
-      try {
-        const status = await window.flaysync.getLinkStatus();
-        const linkStatusEl = document.getElementById('linkStatus');
-        if (status.enabled) {
-          const peers = status.peers || 0;
-          linkStatusEl.textContent = `LINK: ACTIVE (${peers} ${peers === 1 ? 'PEER' : 'PEERS'})`;
-          linkStatusEl.classList.add('connected');
-        } else {
-          linkStatusEl.textContent = 'LINK: OFFLINE';
-          linkStatusEl.classList.remove('connected');
-        }
-      } catch (e) {
-        // Link not available
-      }
-    }
-  }, 1000);
+  pollLinkStatus();
 }
 
 init();
