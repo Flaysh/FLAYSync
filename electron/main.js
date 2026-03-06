@@ -7,10 +7,10 @@ const linkBridge = new LinkBridge();
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 420,
-    height: 240,
+    width: 300,
+    height: 300,
     minWidth: 200,
-    minHeight: 120,
+    minHeight: 200,
     transparent: true,
     frame: false,
     alwaysOnTop: true,
@@ -27,6 +27,12 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, '..', 'src', 'index.html'));
   mainWindow.setAlwaysOnTop(true, 'screen-saver');
   mainWindow.setVisibleOnAllWorkspaces(true);
+
+  // Enforce square aspect ratio on resize
+  mainWindow.on('resize', () => {
+    const [width] = mainWindow.getSize();
+    mainWindow.setSize(width, width);
+  });
 }
 
 app.whenReady().then(() => {
@@ -45,6 +51,14 @@ ipcMain.on('close-window', () => {
 
 ipcMain.on('link-set-tempo', (event, bpm) => {
   linkBridge.setTempo(bpm);
+});
+
+ipcMain.on('link-set-beat-phase', (event, phase) => {
+  linkBridge.setBeatPhase(phase);
+});
+
+ipcMain.on('link-resync', () => {
+  linkBridge.resync();
 });
 
 ipcMain.handle('link-status', () => {
