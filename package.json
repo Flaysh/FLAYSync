@@ -20,6 +20,7 @@
   ],
   "author": "flaysh",
   "license": "MIT",
+  "packageManager": "pnpm@10.25.0",
   "dependencies": {
     "abletonlink-addon": "^0.2.9",
     "electron-updater": "^6.8.3",
