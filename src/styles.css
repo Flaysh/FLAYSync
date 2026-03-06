@@ -44,21 +44,81 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 200;
-  animation: splashFade 1.5s ease-in-out forwards;
-  animation-delay: 1s;
+  animation: splashFade 0.8s ease-in-out 2.4s forwards;
+  overflow: hidden;
+}
+
+/* Soft scanline overlay */
+.splash::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 212, 255, 0.015) 3px,
+    rgba(0, 212, 255, 0.015) 6px
+  );
+  pointer-events: none;
+  z-index: 1;
 }
 
 .splash-logo {
   width: 60%;
   max-width: 200px;
   opacity: 0;
-  animation: logoIn 0.8s ease-out 0.2s forwards;
-  filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5));
+  z-index: 3;
+  animation:
+    logoFadeIn 1s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards,
+    logoGlow 2s ease-in-out 1.2s forwards;
 }
 
-@keyframes logoIn {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
+@keyframes logoFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+    filter:
+      drop-shadow(3px 0 0 rgba(0, 212, 255, 0.6))
+      drop-shadow(-3px 0 0 rgba(255, 45, 123, 0.6));
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.02);
+    filter:
+      drop-shadow(2px 0 0 rgba(0, 212, 255, 0.4))
+      drop-shadow(-2px 0 0 rgba(255, 45, 123, 0.4))
+      drop-shadow(0 0 25px rgba(139, 92, 246, 0.4));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter:
+      drop-shadow(0 0 15px rgba(139, 92, 246, 0.5))
+      drop-shadow(0 0 30px rgba(0, 212, 255, 0.2));
+  }
+}
+
+@keyframes logoGlow {
+  0% {
+    filter:
+      drop-shadow(0 0 15px rgba(139, 92, 246, 0.5))
+      drop-shadow(0 0 30px rgba(0, 212, 255, 0.2));
+  }
+  50% {
+    filter:
+      drop-shadow(0 0 25px rgba(139, 92, 246, 0.7))
+      drop-shadow(0 0 50px rgba(0, 212, 255, 0.4))
+      drop-shadow(0 0 80px rgba(255, 45, 123, 0.2));
+  }
+  100% {
+    filter:
+      drop-shadow(0 0 15px rgba(139, 92, 246, 0.5))
+      drop-shadow(0 0 30px rgba(0, 212, 255, 0.2));
+  }
 }
 
 @keyframes splashFade {
@@ -382,7 +442,7 @@ body {
   flex-direction: column;
   gap: clamp(8px, 3vh, 16px);
   z-index: 10;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .settings-panel.open {
@@ -428,30 +488,71 @@ body {
   color: var(--electric-blue);
 }
 
-.settings-logo {
-  width: 40%;
-  max-width: 100px;
+.settings-logo-link {
+  -webkit-app-region: no-drag;
   align-self: center;
   margin-top: auto;
+  cursor: pointer;
+  position: relative;
+}
+
+.settings-logo {
+  width: clamp(50px, 25vw, 80px);
   opacity: 0.6;
   filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.3));
+  transition: all 0.3s ease;
 }
 
-/* Instagram Link */
-.instagram-link {
-  -webkit-app-region: no-drag;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: clamp(9px, 2.5vw, 12px);
-  color: var(--neon-violet);
-  text-decoration: none;
-  text-align: center;
-  letter-spacing: 0.1em;
-  transition: color 0.2s;
-  margin-top: 6px;
+.settings-logo-link:hover .settings-logo {
+  opacity: 1;
+  filter:
+    drop-shadow(0 0 15px rgba(255, 45, 123, 0.6))
+    drop-shadow(0 0 30px rgba(0, 212, 255, 0.4))
+    drop-shadow(0 0 50px rgba(139, 92, 246, 0.5));
+  animation: glitchLogo 0.4s steps(2) infinite;
 }
 
-.instagram-link:hover {
-  color: var(--hot-pink);
+@keyframes glitchLogo {
+  0% {
+    transform: translate(0, 0) skewX(0deg);
+    filter:
+      drop-shadow(0 0 15px rgba(255, 45, 123, 0.6))
+      drop-shadow(0 0 30px rgba(0, 212, 255, 0.4));
+  }
+  20% {
+    transform: translate(-2px, 1px) skewX(-2deg);
+    filter:
+      drop-shadow(3px 0 0 rgba(0, 212, 255, 0.7))
+      drop-shadow(-3px 0 0 rgba(255, 45, 123, 0.7))
+      drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));
+  }
+  40% {
+    transform: translate(2px, -1px) skewX(1deg);
+    filter:
+      drop-shadow(-2px 0 0 rgba(0, 255, 136, 0.5))
+      drop-shadow(2px 0 0 rgba(255, 45, 123, 0.6))
+      drop-shadow(0 0 25px rgba(0, 212, 255, 0.5));
+  }
+  60% {
+    transform: translate(-1px, 2px) skewX(-1deg);
+    filter:
+      drop-shadow(2px 0 0 rgba(0, 212, 255, 0.8))
+      drop-shadow(-2px 0 0 rgba(255, 45, 123, 0.5))
+      drop-shadow(0 0 30px rgba(139, 92, 246, 0.7));
+  }
+  80% {
+    transform: translate(1px, -2px) skewX(2deg);
+    filter:
+      drop-shadow(-3px 0 0 rgba(255, 45, 123, 0.6))
+      drop-shadow(3px 0 0 rgba(0, 212, 255, 0.6))
+      drop-shadow(0 0 20px rgba(0, 255, 136, 0.4));
+  }
+  100% {
+    transform: translate(0, 0) skewX(0deg);
+    filter:
+      drop-shadow(0 0 15px rgba(255, 45, 123, 0.6))
+      drop-shadow(0 0 30px rgba(0, 212, 255, 0.4));
+  }
 }
 
 /* BPM Split/Double Controls */

@@ -1,27 +1,34 @@
 # FLAYSync
 
-Real-time BPM detection for VJs. Syncs tempo and beat phase to Resolume Arena via Ableton Link.
+Real-time BPM detection overlay for VJs. Detects tempo from any audio input and syncs BPM + beat phase to Resolume Arena (and any Ableton Link-enabled app).
 
 ![FLAYSync](assets/flaysh-logo.png)
 
 ## Features
 
-- **Auto BPM detection** from any audio input device
-- **Beat phase tracking** — sends 4/4 bar position to Link, not just BPM
-- **Tap tempo** — tap 5 times to override (spacebar or click)
-- **Ableton Link** — syncs BPM + beat position to Resolume Arena and any Link-enabled app
-- **Always-on-top overlay** — compact 300x300 square, resizable
-- **Cyberpunk UI** — dark, neon-accented interface with circular waveform visualizer
+- **Auto BPM detection** from any audio input (line-in, audio interface, or microphone)
+- **Tap tempo with smart hint** — tap to guide detection toward the correct BPM range
+- **Beat phase tracking** — sends 4/4 bar position over Link, not just tempo
+- **Ableton Link sync** — connects to Resolume Arena, Ableton Live, and any Link-enabled app
+- **Quick-lock** — shows tentative BPM after just 3 beats, locks precisely as more data arrives
+- **BPM half/double** — instantly switch between half-time and double-time
+- **Always-on-top overlay** — compact, resizable window (min 150x150)
+- **Persistent settings** — remembers your audio device, buffer size, and preferences
+- **Cyberpunk UI** — dark neon interface with organic blob visualizer and beat phase dots
+
+## Requirements
+
+- **Node.js** 18+
+- **macOS** (Windows support planned)
+- Audio input device (audio interface recommended for best results)
 
 ## Install
 
 ```bash
-git clone <repo-url>
-cd flaysync
+git clone https://github.com/flaysh/FLAYSync.git
+cd FLAYSync
 npm install
 ```
-
-Requires Node.js 18+ and macOS (Windows support planned).
 
 ## Run
 
@@ -31,33 +38,67 @@ npm start
 
 ## Quick Start
 
-1. Launch FLAYSync — splash screen shows, then the main overlay appears
-2. Select your audio input device in Settings (gear icon)
-3. Play music — FLAYSync auto-detects BPM
+1. Launch FLAYSync — select your audio input device and buffer size
+2. Play music — BPM is detected automatically
+3. Tap **Space** to help the detector lock onto the correct tempo
 4. When BPM locks (turns blue), it syncs to Ableton Link automatically
-5. In Resolume Arena: enable Ableton Link in preferences
+5. In **Resolume Arena**: enable Ableton Link in preferences
 
 ## Audio Setup Tips
 
-- **Best:** Dedicated line input from mixer/audio interface
-- **Good:** External USB audio interface
-- **OK:** Built-in laptop microphone (works, but less accurate)
-- Use buffer size 512 (default) for best balance of speed and accuracy
-- Higher buffer (1024) can improve accuracy in noisy environments
+| Setup | Quality | Notes |
+|-------|---------|-------|
+| Line-in from mixer | Best | Direct signal, no noise |
+| USB audio interface | Great | Low latency, clean signal |
+| Built-in microphone | OK | Works, but ambient noise reduces accuracy |
+
+- **Buffer 1024** (default) — best accuracy
+- **Buffer 512** — faster response, slightly less accurate
 
 ## Keyboard Shortcuts
 
 | Key | Action |
 |-----|--------|
 | Space | Tap tempo |
-| ALT + Space | Resync (reset beat 1) |
-| ESC | Close settings |
+| Alt + Space | Resync beat phase (reset beat 1) |
+| Esc | Close settings panel |
 
 ## How It Works
 
-FLAYSync captures audio from your selected input device, extracts spectral and energy features in real-time using Meyda, detects beat onsets using dual spectral flux + energy analysis, estimates tempo via autocorrelation, and broadcasts BPM + beat phase over Ableton Link.
+FLAYSync captures audio, extracts spectral + energy features (Meyda), detects beat onsets via spectral flux + energy analysis, estimates tempo via autocorrelation, and broadcasts BPM + beat phase over Ableton Link.
 
-The beat phase indicator (4 dots) shows which beat in the 4/4 bar is currently playing — green when confident, grey when uncertain. This phase information syncs to Resolume so your visuals know exactly where in the bar the music is.
+**Tap tempo as a hint:** When you tap a BPM, the detector uses it as a guide — biasing detection toward that tempo range and resolving half/double-time ambiguity. The hint fades over 30 seconds as audio detection takes over.
+
+The beat phase indicator (4 dots) shows which beat in the 4/4 bar is currently playing — green when confident, grey when uncertain. This phase syncs to Resolume so your visuals know exactly where in the bar the music is.
+
+## Architecture
+
+```
+src/
+  app.js             — Main app, UI, audio callback loop
+  audio.js           — Web Audio API + Meyda feature extraction
+  bpm-detector.js    — Autocorrelation BPM detection + tap hint + smoothing
+  onset-detector.js  — Spectral flux + energy onset detection
+  tap-tempo.js       — Tap tempo with timeout and lock
+  styles.css         — Cyberpunk UI styles
+  index.html         — App layout
+
+electron/
+  main.cjs           — Electron main process
+  preload.cjs        — Context bridge (IPC)
+  link.cjs           — Ableton Link integration
+
+tests/
+  bpm-detector.test.js
+  onset-detector.test.js
+  tap-tempo.test.js
+```
+
+## Testing
+
+```bash
+npm test
+```
 
 ## License
 
@@ -65,4 +106,4 @@ MIT
 
 ---
 
-Built by **FLAYSH**
+Built by [FLAYSH](https://www.instagram.com/flaysh_/)

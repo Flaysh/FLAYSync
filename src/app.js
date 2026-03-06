@@ -271,9 +271,9 @@ requestAnimationFrame(beatClockLoop);
 // --- Audio -> BPM Detection ---
 audio.onFeatures = (features) => {
   try {
-    if (tapMode) return;
-
     const now = performance.now();
+
+    // Always process onsets, even in tap mode (keeps detector primed)
     const isOnset = onsetDetector.process(features, now);
 
     if (isOnset) {
@@ -281,9 +281,21 @@ audio.onFeatures = (features) => {
       onsetPulse = 1;
     }
 
-    const result = bpmDetector.getBpm();
-    if (result.bpm !== null) {
-      updateBpm(result.bpm, result.confidence);
+    // In tap mode, only update if audio detection agrees (high confidence)
+    if (tapMode) {
+      const result = bpmDetector.getBpm();
+      if (result.bpm !== null && result.confidence > 0.6) {
+        updateBpm(result.bpm, result.confidence);
+        tapMode = false;
+        tapTempo.reset();
+        tapBtn.classList.remove('locked');
+        clearTimeout(tapTimeout);
+      }
+    } else {
+      const result = bpmDetector.getBpm();
+      if (result.bpm !== null) {
+        updateBpm(result.bpm, result.confidence);
+      }
     }
 
     // Audio level
@@ -389,11 +401,13 @@ function handleTap() {
   tapBtn.classList.toggle('locked', tapTempo.isLocked());
 
   if (tapTempo.isLocked() && bpm !== null) {
-    tapMode = true;
+    // Set tap hint so audio detection biases toward this BPM
+    bpmDetector.setTapHint(bpm);
     bpmDetector._lockedBpm = bpm;
     bpmDetector._phaseOrigin = performance.now();
     updateBpm(bpm, 1.0);
     statusEl.textContent = 'TAP LOCKED';
+    tapMode = true;
 
     clearTimeout(tapTimeout);
     tapTimeout = setTimeout(() => {
@@ -401,7 +415,7 @@ function handleTap() {
       tapTempo.reset();
       tapBtn.classList.remove('locked');
       statusEl.textContent = 'LISTENING';
-    }, 10000);
+    }, 5000);
   }
 }
 
