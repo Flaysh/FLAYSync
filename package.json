@@ -7,7 +7,10 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test tests/*.test.js",
-    "postinstall": "npx @electron/rebuild"
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "postinstall": "electron-rebuild"
   },
   "keywords": [
     "bpm",
@@ -15,12 +18,78 @@
     "resolume",
     "ableton-link"
   ],
+  "author": "flaysh",
   "license": "MIT",
   "dependencies": {
     "abletonlink-addon": "^0.2.9",
+    "electron-updater": "^6.8.3",
     "meyda": "^5.6.3"
   },
+  "build": {
+    "appId": "com.flaysh.flaysync",
+    "productName": "FLAYSync",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "assets/**/*",
+      "node_modules/**/*"
+    ],
+    "mac": {
+      "icon": "assets/icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.music"
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "flaysh",
+      "repo": "FLAYSync"
+    }
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "abletonlink-addon",
+      "electron"
+    ]
+  },
   "devDependencies": {
-    "electron": "^40.8.0"
+    "@electron/rebuild": "^4.0.3",
+    "electron": "^40.8.0",
+    "electron-builder": "^26.8.1",
+    "electron-icon-builder": "^2.0.1"
   }
 }

@@ -8,4 +8,9 @@ contextBridge.exposeInMainWorld('flaysync', {
   closeWindow: () => ipcRenderer.send('close-window'),
   setAlwaysOnTop: (enabled) => ipcRenderer.send('set-always-on-top', enabled),
   openExternal: (url) => ipcRenderer.send('open-external', url),
+  onUpdateAvailable: (callback) => ipcRenderer.on('update-available', (_, version) => callback(version)),
+  onUpdateProgress: (callback) => ipcRenderer.on('update-progress', (_, percent) => callback(percent)),
+  onUpdateDownloaded: (callback) => ipcRenderer.on('update-downloaded', () => callback()),
+  downloadUpdate: () => ipcRenderer.send('update-download'),
+  installUpdate: () => ipcRenderer.send('update-install'),
 });

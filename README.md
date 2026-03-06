@@ -18,22 +18,27 @@ Real-time BPM detection overlay for VJs. Detects tempo from any audio input and 
 
 ## Requirements
 
-- **Node.js** 18+
-- **macOS** (Windows support planned)
+- **macOS** 10.15+ or **Windows** 10+
 - Audio input device (audio interface recommended for best results)
 
 ## Install
 
+### Download (recommended)
+
+Download the latest release for your platform:
+
+- **Mac:** [FLAYSync.dmg](https://github.com/flaysh/FLAYSync/releases/latest)
+- **Windows:** [FLAYSync-Setup.exe](https://github.com/flaysh/FLAYSync/releases/latest)
+
+### Build from source
+
+Requires Node.js 18+ and pnpm.
+
 ```bash
 git clone https://github.com/flaysh/FLAYSync.git
 cd FLAYSync
-npm install
-```
-
-## Run
-
-```bash
-npm start
+pnpm install
+pnpm start
 ```
 
 ## Quick Start
@@ -97,7 +102,7 @@ tests/
 ## Testing
 
 ```bash
-npm test
+pnpm test
 ```
 
 ## License

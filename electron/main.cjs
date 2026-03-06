@@ -1,5 +1,6 @@
 // electron/main.js — full rewrite
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const { LinkBridge } = require('./link.cjs');
 
@@ -43,6 +44,24 @@ function createWindow() {
 app.whenReady().then(() => {
   createWindow();
   linkBridge.start();
+
+  // Auto-update
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('update-available', (info) => {
+    mainWindow.webContents.send('update-available', info.version);
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    mainWindow.webContents.send('update-progress', progress.percent);
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    mainWindow.webContents.send('update-downloaded');
+  });
+
+  autoUpdater.checkForUpdates().catch(() => {});
 });
 
 app.on('window-all-closed', () => {
@@ -68,6 +87,14 @@ ipcMain.on('link-resync', () => {
 
 ipcMain.handle('link-status', () => {
   return linkBridge.getStatus();
+});
+
+ipcMain.on('update-download', () => {
+  autoUpdater.downloadUpdate();
+});
+
+ipcMain.on('update-install', () => {
+  autoUpdater.quitAndInstall();
 });
 
 ipcMain.on('set-always-on-top', (event, enabled) => {

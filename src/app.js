@@ -516,3 +516,34 @@ function sendBeatPhaseLoop() {
   setTimeout(sendBeatPhaseLoop, 50);
 }
 sendBeatPhaseLoop();
+
+// --- Auto Update ---
+if (window.flaysync && window.flaysync.onUpdateAvailable) {
+  const updateBar = document.getElementById('updateBar');
+  const updateText = document.getElementById('updateText');
+  const updateAction = document.getElementById('updateAction');
+
+  window.flaysync.onUpdateAvailable((version) => {
+    updateBar.style.display = 'flex';
+    updateText.textContent = `v${version} available`;
+    updateAction.textContent = 'Download';
+    updateAction.onclick = () => {
+      window.flaysync.downloadUpdate();
+      updateAction.disabled = true;
+      updateText.textContent = 'Downloading...';
+    };
+  });
+
+  window.flaysync.onUpdateProgress((percent) => {
+    updateText.textContent = `Downloading... ${Math.round(percent)}%`;
+  });
+
+  window.flaysync.onUpdateDownloaded(() => {
+    updateText.textContent = 'Update ready';
+    updateAction.textContent = 'Restart';
+    updateAction.disabled = false;
+    updateAction.onclick = () => {
+      window.flaysync.installUpdate();
+    };
+  });
+}
