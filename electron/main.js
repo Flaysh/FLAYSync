@@ -1,7 +1,9 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const { LinkBridge } = require('./link');
 
 let mainWindow;
+const linkBridge = new LinkBridge();
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -25,12 +27,24 @@ function createWindow() {
   mainWindow.setVisibleOnAllWorkspaces(true);
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+  linkBridge.start();
+});
 
 app.on('window-all-closed', () => {
+  linkBridge.stop();
   app.quit();
 });
 
 ipcMain.on('close-window', () => {
   mainWindow.close();
+});
+
+ipcMain.on('link-set-tempo', (event, bpm) => {
+  linkBridge.setTempo(bpm);
+});
+
+ipcMain.handle('link-status', () => {
+  return linkBridge.getStatus();
 });
