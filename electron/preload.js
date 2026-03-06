@@ -1,8 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('flayshlizer', {
-  getAudioDevices: () => ipcRenderer.invoke('get-audio-devices'),
+contextBridge.exposeInMainWorld('flaysync', {
   setLinkTempo: (bpm) => ipcRenderer.send('link-set-tempo', bpm),
+  setLinkBeatPhase: (phase) => ipcRenderer.send('link-set-beat-phase', phase),
   getLinkStatus: () => ipcRenderer.invoke('link-status'),
+  resyncBeat: () => ipcRenderer.send('link-resync'),
   closeWindow: () => ipcRenderer.send('close-window'),
 });

@@ -1,7 +1,7 @@
 {
-  "name": "flayshlizer",
-  "version": "0.1.0",
-  "description": "Real-time BPM detection for VJs — syncs to Resolume via Ableton Link",
+  "name": "flaysync",
+  "version": "0.2.0",
+  "description": "Real-time BPM detection for VJs — syncs tempo + beat phase to Resolume via Ableton Link",
   "main": "electron/main.js",
   "scripts": {
     "start": "electron .",

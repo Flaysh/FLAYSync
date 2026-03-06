@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>flayshlizer</title>
+  <title>FLAYSync</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,9 +14,9 @@
     <div class="beat-pulse" id="beatPulse"></div>
     <div class="bpm-display" id="bpmDisplay">---</div>
     <div class="bpm-label">B P M</div>
-    <div class="audio-bar-container">
-      <div class="audio-bar" id="audioBar"></div>
-    </div>
+
+    <canvas class="visualizer" id="visualizer"></canvas>
+
     <div class="status" id="status">INITIALIZING</div>
     <button class="tap-btn" id="tapBtn">TAP</button>
 
@@ -27,8 +27,8 @@
       <select id="audioDevice"></select>
       <label>BUFFER SIZE</label>
       <select id="bufferSize">
-        <option value="512">512</option>
-        <option value="1024" selected>1024</option>
+        <option value="512" selected>512</option>
+        <option value="1024">1024</option>
         <option value="2048">2048</option>
       </select>
       <div class="link-status" id="linkStatus">LINK: OFFLINE</div>
