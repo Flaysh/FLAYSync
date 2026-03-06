@@ -24,6 +24,7 @@ const onsetDetector = new OnsetDetector();
 const tapTempo = new TapTempo();
 
 let currentBpm = null;
+let currentConfidence = 0;
 let isLocked = false;
 let tapMode = false;
 let tapTimeout;
@@ -56,7 +57,7 @@ function drawRingVisualizer() {
   const h = canvas.height;
   const cx = w / 2;
   const cy = h / 2;
-  const radius = Math.min(cx, cy) * 0.85;
+  const radius = Math.min(cx, cy) * 0.82;
 
   ctx.clearRect(0, 0, w, h);
 
@@ -65,13 +66,14 @@ function drawRingVisualizer() {
     return;
   }
 
-  const barCount = 64;
-  const step = Math.floor(freqData.length / barCount);
+  const barCount = 90;
+  const step = Math.max(1, Math.floor(freqData.length / barCount));
+  const angleStep = (Math.PI * 2) / barCount;
 
   for (let i = 0; i < barCount; i++) {
-    const value = freqData[i * step] / 255;
-    const angle = (i / barCount) * Math.PI * 2 - Math.PI / 2;
-    const barLen = value * radius * 0.3;
+    const value = freqData[Math.min(i * step, freqData.length - 1)] / 255;
+    const angle = i * angleStep - Math.PI / 2;
+    const barLen = value * radius * 0.35 + radius * 0.02; // minimum bar length for full ring
 
     const x1 = cx + Math.cos(angle) * radius;
     const y1 = cy + Math.sin(angle) * radius;
@@ -100,7 +102,7 @@ function drawRingVisualizer() {
 
     const alpha = 0.3 + value * 0.7;
     ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    ctx.lineWidth = Math.max(1, (w / barCount) * 0.6);
+    ctx.lineWidth = Math.max(2, (w / barCount) * 0.8);
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(x1, y1);
@@ -120,6 +122,18 @@ function drawRingVisualizer() {
 
 requestAnimationFrame(drawRingVisualizer);
 
+// --- Independent Beat Clock for Dots ---
+// Runs on rAF, ticks dots based on locked BPM phase regardless of onset detection
+function beatClockLoop() {
+  if (currentBpm !== null && currentBpm > 0) {
+    const now = performance.now();
+    const beatIndex = bpmDetector.getBeatIndex(now);
+    updateBeatDots(beatIndex, currentConfidence);
+  }
+  requestAnimationFrame(beatClockLoop);
+}
+requestAnimationFrame(beatClockLoop);
+
 // --- Audio → BPM Detection ---
 audio.onFeatures = (features) => {
   if (tapMode) return;
@@ -134,12 +148,12 @@ audio.onFeatures = (features) => {
   const result = bpmDetector.getBpm();
   if (result.bpm !== null) {
     updateBpm(result.bpm, result.confidence);
-    updateBeatDots(bpmDetector.getBeatIndex(now), result.confidence);
   }
 };
 
 function updateBpm(bpm, confidence) {
   currentBpm = bpm;
+  currentConfidence = confidence;
   isLocked = confidence > 0.6;
 
   bpmDisplay.textContent = bpm.toFixed(1);
@@ -199,6 +213,9 @@ function handleTap() {
 
   if (tapTempo.isLocked() && bpm !== null) {
     tapMode = true;
+    // Set phase origin on tap lock so dots work immediately
+    bpmDetector._lockedBpm = bpm;
+    bpmDetector._phaseOrigin = performance.now();
     updateBpm(bpm, 1.0);
     statusEl.textContent = 'TAP LOCKED';
 
@@ -281,6 +298,17 @@ function pollLinkStatus() {
     } catch (e) {}
   }, 1000);
 }
+
+// --- Beat Phase to Link ---
+// Send beat phase to Link continuously when locked
+function sendBeatPhaseLoop() {
+  if (currentBpm !== null && isLocked && window.flaysync) {
+    const phase = bpmDetector.getPhase(performance.now());
+    window.flaysync.setLinkBeatPhase(phase);
+  }
+  setTimeout(sendBeatPhaseLoop, 50);
+}
+sendBeatPhaseLoop();
 
 // --- Init ---
 async function init() {

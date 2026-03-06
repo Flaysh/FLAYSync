@@ -40,7 +40,7 @@ class BpmDetector {
   }
 
   getBpm() {
-    if (this.onsets.length < 6) {
+    if (this.onsets.length < 4) {
       return { bpm: null, confidence: 0 };
     }
 

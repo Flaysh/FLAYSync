@@ -23,7 +23,7 @@ class OnsetDetector {
     this.energyHistory.push(energy);
     if (this.energyHistory.length > this.energyWindowSize) this.energyHistory.shift();
 
-    if (this.fluxHistory.length < 6) return false;
+    if (this.energyHistory.length < 6) return false;
 
     // Silence gate
     if (rms < this.minRms) return false;
@@ -38,8 +38,12 @@ class OnsetDetector {
     const fluxExceeds = flux > meanFlux * this.fluxMultiplier && flux > 0.01;
     const energyExceeds = energy > meanEnergy * this.energyMultiplier;
 
-    // Both must agree
-    if (fluxExceeds && energyExceeds) {
+    // Both agree = high confidence onset
+    // Energy-only = fallback onset (spectralFlux may be unavailable/zero in some Meyda builds)
+    const hasFluxData = meanFlux > 0.001;
+    const isOnset = hasFluxData ? (fluxExceeds && energyExceeds) : energyExceeds;
+
+    if (isOnset) {
       this.lastOnsetTime = timestamp;
       return true;
     }
