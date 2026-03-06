@@ -270,6 +270,34 @@ body {
   position: relative;
 }
 
+/* Audio Level Bar */
+.audio-level-bar {
+  width: clamp(80px, 40vw, 160px);
+  height: 3px;
+  background: rgba(139, 92, 246, 0.15);
+  border-radius: 2px;
+  margin-top: clamp(4px, 1.5vh, 10px);
+  overflow: hidden;
+  z-index: 3;
+  position: relative;
+}
+
+.audio-level-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 2px;
+  background: var(--beat-green);
+  transition: width 0.05s linear, background 0.15s;
+}
+
+.audio-level-fill.hot {
+  background: #ff8800;
+}
+
+.audio-level-fill.clip {
+  background: var(--hot-pink);
+}
+
 /* TAP Button */
 .tap-btn {
   -webkit-app-region: no-drag;

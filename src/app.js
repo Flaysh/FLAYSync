@@ -4,6 +4,20 @@ import { BpmDetector } from './bpm-detector.js';
 import { OnsetDetector } from './onset-detector.js';
 import { TapTempo } from './tap-tempo.js';
 
+// Persistent settings
+const SETTINGS_KEY = 'flaysync-settings';
+
+function loadSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+  } catch { return {}; }
+}
+
+function saveSettings(partial) {
+  const current = loadSettings();
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...current, ...partial }));
+}
+
 // DOM references
 const splash = document.getElementById('splash');
 const deviceModal = document.getElementById('deviceModal');
@@ -26,6 +40,7 @@ const beatDots = [0, 1, 2, 3].map(i => document.getElementById(`beat${i}`));
 const bpmHalfBtn = document.getElementById('bpmHalf');
 const bpmDoubleBtn = document.getElementById('bpmDouble');
 const alwaysOnTopToggle = document.getElementById('alwaysOnTop');
+const audioLevelEl = document.getElementById('audioLevel');
 
 // Engine instances
 const audio = new AudioEngine();
@@ -100,6 +115,14 @@ async function populateDeviceModal() {
     deviceSelect.innerHTML = devices
       .map(d => `<option value="${d.deviceId}">${d.label || 'Unknown Device'}</option>`)
       .join('');
+    const saved = loadSettings();
+    if (saved.deviceId) {
+      const option = [...deviceSelect.options].find(o => o.value === saved.deviceId);
+      if (option) deviceSelect.value = saved.deviceId;
+    }
+    if (saved.bufferSize) {
+      deviceBufferSize.value = saved.bufferSize;
+    }
   } catch (err) {
     deviceSelect.innerHTML = '<option>No audio devices found</option>';
   }
@@ -108,6 +131,7 @@ async function populateDeviceModal() {
 deviceStartBtn.addEventListener('click', async () => {
   const deviceId = deviceSelect.value;
   const bufferSize = parseInt(deviceBufferSize.value);
+  saveSettings({ deviceId, bufferSize });
   deviceModal.style.display = 'none';
   mainUI.style.display = '';
 
@@ -120,6 +144,12 @@ deviceStartBtn.addEventListener('click', async () => {
   audioDeviceSelect.innerHTML = deviceSelect.innerHTML;
   audioDeviceSelect.value = deviceId;
   bufferSizeSelect.value = deviceBufferSize.value;
+
+  const saved = loadSettings();
+  if (saved.alwaysOnTop !== undefined) {
+    alwaysOnTopToggle.checked = saved.alwaysOnTop;
+    if (window.flaysync) window.flaysync.setAlwaysOnTop(saved.alwaysOnTop);
+  }
 
   statusEl.textContent = 'LISTENING';
   try {
@@ -246,6 +276,12 @@ audio.onFeatures = (features) => {
   if (result.bpm !== null) {
     updateBpm(result.bpm, result.confidence);
   }
+
+  // Audio level
+  const rmsLevel = Math.min(1, (features.rms || 0) * 5);
+  audioLevelEl.style.width = `${rmsLevel * 100}%`;
+  audioLevelEl.classList.toggle('hot', rmsLevel > 0.7);
+  audioLevelEl.classList.toggle('clip', rmsLevel > 0.9);
 };
 
 function getDisplayBpm(bpm) {
@@ -392,6 +428,7 @@ bufferSizeSelect.addEventListener('change', restartAudio);
 async function restartAudio() {
   const deviceId = audioDeviceSelect.value;
   const bufferSize = parseInt(bufferSizeSelect.value);
+  saveSettings({ deviceId, bufferSize });
   audio.stop();
   bpmDetector.reset();
   onsetDetector.reset();
@@ -400,6 +437,7 @@ async function restartAudio() {
 
 // --- Always on Top ---
 alwaysOnTopToggle.addEventListener('change', () => {
+  saveSettings({ alwaysOnTop: alwaysOnTopToggle.checked });
   if (window.flaysync) {
     window.flaysync.setAlwaysOnTop(alwaysOnTopToggle.checked);
   }
