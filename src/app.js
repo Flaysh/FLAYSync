@@ -1,5 +1,8 @@
 // src/app.js
 import { AudioEngine } from './audio.js';
+import { BpmDetector } from './bpm-detector.js';
+import { OnsetDetector } from './onset-detector.js';
+import { TapTempo } from './tap-tempo.js';
 
 // DOM references
 const splash = document.getElementById('splash');

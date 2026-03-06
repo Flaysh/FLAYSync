@@ -1,4 +1,4 @@
-class TapTempo {
+export class TapTempo {
   constructor(options = {}) {
     this.requiredTaps = options.requiredTaps || 5;
     this.timeoutMs = options.timeoutMs || 3000;
@@ -40,8 +40,4 @@ class TapTempo {
   reset() {
     this.taps = [];
   }
-}
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { TapTempo };
 }

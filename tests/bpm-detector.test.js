@@ -1,12 +1,12 @@
-const { describe, it } = require('node:test');
-const assert = require('node:assert');
-const { BpmDetector } = require('../src/bpm-detector.js');
+import { describe, it } from 'node:test';
+import assert from 'node:assert';
+import { BpmDetector } from '../src/bpm-detector.js';
 
 describe('BpmDetector', () => {
   describe('basic detection', () => {
     it('detects 120 BPM from evenly spaced onsets', () => {
       const detector = new BpmDetector();
-      const intervalMs = 500; // 120 BPM
+      const intervalMs = 500;
       const now = 1000;
       for (let i = 0; i < 12; i++) {
         detector.registerOnset(now + i * intervalMs);
@@ -31,7 +31,7 @@ describe('BpmDetector', () => {
 
     it('detects 80 BPM (slow tempo)', () => {
       const detector = new BpmDetector();
-      const intervalMs = 750; // 80 BPM
+      const intervalMs = 750;
       const now = 1000;
       for (let i = 0; i < 12; i++) {
         detector.registerOnset(now + i * intervalMs);
@@ -60,36 +60,56 @@ describe('BpmDetector', () => {
     });
   });
 
+  describe('quick-lock', () => {
+    it('provides tentative BPM after just 3 onsets with consistent intervals', () => {
+      const detector = new BpmDetector();
+      const intervalMs = 500; // 120 BPM
+      detector.registerOnset(1000);
+      detector.registerOnset(1500);
+      detector.registerOnset(2000);
+      const result = detector.getBpm();
+      assert.ok(result.bpm !== null, 'Should have tentative BPM after 3 onsets');
+      assert.ok(result.bpm >= 118 && result.bpm <= 122, `Expected ~120, got ${result.bpm}`);
+      assert.ok(result.confidence > 0 && result.confidence <= 0.5, `Expected medium confidence, got ${result.confidence}`);
+    });
+
+    it('returns null after 3 onsets with inconsistent intervals', () => {
+      const detector = new BpmDetector();
+      detector.registerOnset(1000);
+      detector.registerOnset(1200); // 200ms gap
+      detector.registerOnset(2000); // 800ms gap — very inconsistent
+      const result = detector.getBpm();
+      // Should not quick-lock on inconsistent intervals
+      assert.strictEqual(result.bpm, null);
+    });
+  });
+
   describe('BPM smoothing', () => {
     it('snaps BPM to nearest 0.5', () => {
       const detector = new BpmDetector();
-      const intervalMs = 497; // ~120.7 BPM
+      const intervalMs = 497;
       const now = 1000;
       for (let i = 0; i < 12; i++) {
         detector.registerOnset(now + i * intervalMs);
       }
       const result = detector.getBpm();
       assert.ok(result.bpm !== null);
-      // Should be snapped to nearest 0.5
       assert.strictEqual(result.bpm % 0.5, 0, `BPM ${result.bpm} not snapped to 0.5`);
     });
 
     it('rejects large BPM jumps until consistent', () => {
       const detector = new BpmDetector();
-      // Lock at 120 BPM
       for (let i = 0; i < 12; i++) {
         detector.registerOnset(1000 + i * 500);
       }
       const locked = detector.getBpm();
       assert.ok(locked.bpm >= 118 && locked.bpm <= 122);
 
-      // Single onset at different tempo should not jump
       detector.reset();
       detector._lockedBpm = 120;
       for (let i = 0; i < 12; i++) {
-        detector.registerOnset(20000 + i * 429); // ~140 BPM
+        detector.registerOnset(20000 + i * 429);
       }
-      // After enough consistent readings it should eventually accept the new BPM
       const result = detector.getBpm();
       assert.ok(result.bpm !== null);
     });
@@ -98,7 +118,7 @@ describe('BpmDetector', () => {
   describe('beat phase', () => {
     it('tracks phase position in 4/4 bar', () => {
       const detector = new BpmDetector();
-      const intervalMs = 500; // 120 BPM
+      const intervalMs = 500;
       const now = 1000;
       for (let i = 0; i < 8; i++) {
         detector.registerOnset(now + i * intervalMs);
@@ -126,7 +146,6 @@ describe('BpmDetector', () => {
       const intervalMs = 60000 / 128;
       const now = 1000;
       for (let i = 0; i < 16; i++) {
-        // Add jitter of +/- 15ms
         const jitter = (i % 3 - 1) * 15;
         detector.registerOnset(now + i * intervalMs + jitter);
       }
@@ -138,18 +157,16 @@ describe('BpmDetector', () => {
 
     it('handles mixed-in ghost onsets gracefully', () => {
       const detector = new BpmDetector();
-      const intervalMs = 500; // 120 BPM
+      const intervalMs = 500;
       const now = 1000;
       for (let i = 0; i < 12; i++) {
         detector.registerOnset(now + i * intervalMs);
-        // Ghost onset at half-beat (should not confuse detector into 240 BPM)
         if (i % 3 === 0) {
           detector.registerOnset(now + i * intervalMs + 250);
         }
       }
       const result = detector.getBpm();
       assert.ok(result.bpm !== null);
-      // Should detect 120 not 240
       assert.ok(result.bpm >= 115 && result.bpm <= 125, `Expected ~120, got ${result.bpm}`);
     });
   });
@@ -163,10 +180,8 @@ describe('BpmDetector', () => {
         detector.registerOnset(now + i * intervalMs);
       }
       const phaseBefore = detector.getPhase(now + 8 * intervalMs);
-      // Register onset 5ms early (within dead zone)
       detector.registerOnset(now + 8 * intervalMs - 5);
       const phaseAfter = detector.getPhase(now + 8 * intervalMs);
-      // Phase should not have changed (5ms < 10ms dead zone)
       assert.ok(Math.abs(phaseAfter - phaseBefore) < 0.05,
         `Phase jittered: ${phaseBefore} -> ${phaseAfter}`);
     });

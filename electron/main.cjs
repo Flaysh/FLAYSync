@@ -1,7 +1,7 @@
 // electron/main.js — full rewrite
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const { LinkBridge } = require('./link');
+const { LinkBridge } = require('./link.cjs');
 
 let mainWindow;
 const linkBridge = new LinkBridge();
@@ -20,7 +20,7 @@ function createWindow() {
     resizable: true,
     skipTaskbar: false,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
     },

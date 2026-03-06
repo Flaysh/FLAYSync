@@ -1,4 +1,4 @@
-class BpmDetector {
+export class BpmDetector {
   constructor(options = {}) {
     this.windowSize = options.windowSize || 10000;
     this.minBpm = options.minBpm || 60;
@@ -26,7 +26,6 @@ class BpmDetector {
       const beatMs = 60000 / this._lockedBpm;
       const expected = this._nearestBeatTime(timestampMs, beatMs);
       const error = timestampMs - expected;
-      // Dead zone: skip nudge for errors under 10ms
       if (Math.abs(error) > 10) {
         this._phaseOrigin += error * 0.1;
       }
@@ -41,6 +40,11 @@ class BpmDetector {
   }
 
   getBpm() {
+    // Quick-lock: tentative BPM from 3 onsets (2 intervals)
+    if (this.onsets.length >= 3 && this.onsets.length < 4) {
+      return this._quickLock();
+    }
+
     if (this.onsets.length < 4) {
       return { bpm: null, confidence: 0 };
     }
@@ -68,7 +72,6 @@ class BpmDetector {
     const median = sorted[Math.floor(sorted.length / 2)];
     const medianBpm = 60000 / median;
 
-    // Use autocorrelation if it has decent strength, else median
     let rawBpm;
     if (autoResult && autoResult.strength > 0.4) {
       rawBpm = autoResult.bpm;
@@ -94,8 +97,31 @@ class BpmDetector {
     return { bpm, confidence };
   }
 
+  _quickLock() {
+    const intervals = [];
+    for (let i = 1; i < this.onsets.length; i++) {
+      intervals.push(this.onsets[i] - this.onsets[i - 1]);
+    }
+
+    const minInterval = 60000 / this.maxBpm;
+    const maxInterval = 60000 / this.minBpm;
+    const valid = intervals.filter(iv => iv >= minInterval && iv <= maxInterval);
+
+    if (valid.length < 2) return { bpm: null, confidence: 0 };
+
+    // Check consistency: intervals within 15% of each other
+    const avg = valid.reduce((a, b) => a + b, 0) / valid.length;
+    const maxDiff = Math.max(...valid.map(iv => Math.abs(iv - avg) / avg));
+
+    if (maxDiff > 0.15) return { bpm: null, confidence: 0 };
+
+    const rawBpm = 60000 / avg;
+    const snapped = Math.round(rawBpm * 2) / 2;
+
+    return { bpm: snapped, confidence: 0.4 };
+  }
+
   _autocorrelate(intervals, minInterval, maxInterval) {
-    // Build a histogram of intervals quantized to 5ms bins
     const binSize = 5;
     const bins = {};
     for (const iv of intervals) {
@@ -103,7 +129,6 @@ class BpmDetector {
       bins[bin] = (bins[bin] || 0) + 1;
     }
 
-    // Find the bin with the most hits within valid range
     let bestBin = null;
     let bestCount = 0;
     for (const [bin, count] of Object.entries(bins)) {
@@ -116,7 +141,6 @@ class BpmDetector {
 
     if (bestBin === null || bestCount < 3) return null;
 
-    // Refine: average all intervals within +/- 1 bin of the peak
     const tolerance = binSize * 2;
     const nearby = intervals.filter(iv => Math.abs(iv - bestBin) <= tolerance);
     const refined = nearby.reduce((a, b) => a + b, 0) / nearby.length;
@@ -181,8 +205,4 @@ class BpmDetector {
     this._jumpTarget = null;
     this._phaseOrigin = null;
   }
-}
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { BpmDetector };
 }

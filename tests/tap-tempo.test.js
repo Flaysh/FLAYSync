@@ -1,6 +1,6 @@
-const { describe, it } = require('node:test');
-const assert = require('node:assert');
-const { TapTempo } = require('../src/tap-tempo.js');
+import { describe, it } from 'node:test';
+import assert from 'node:assert';
+import { TapTempo } from '../src/tap-tempo.js';
 
 describe('TapTempo', () => {
   it('returns null with fewer than 5 taps', () => {
