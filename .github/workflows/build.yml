@@ -32,6 +32,8 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: Install dependencies
         run: pnpm install
@@ -43,6 +45,7 @@ jobs:
         run: ${{ matrix.build_cmd }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISH: never
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

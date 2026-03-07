@@ -75,11 +75,7 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     },
-    "publish": {
-      "provider": "github",
-      "owner": "flaysh",
-      "repo": "FLAYSync"
-    }
+    "publish": null
   },
   "pnpm": {
     "onlyBuiltDependencies": [

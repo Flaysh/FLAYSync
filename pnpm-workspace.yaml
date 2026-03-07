@@ -1,5 +1,0 @@
-ignoredBuiltDependencies:
-  - abletonlink-addon
-  - electron
-  - electron-winstaller
-  - phantomjs-prebuilt

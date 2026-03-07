@@ -2,7 +2,7 @@
 
 Real-time BPM detection overlay for VJs. Detects tempo from any audio input and syncs BPM + beat phase to Resolume Arena (and any Ableton Link-enabled app).
 
-**[Website](https://sync.flaysh.com)** · **[Download](https://github.com/flaysh/FLAYSync/releases/latest)** · **[Support / Tip](https://flaysh.gumroad.com/l/sync)**
+**[Website](https://sync.flaysh.com)** · **[Download](https://flaysh.gumroad.com/l/sync)** · **[Support / Tip](https://flaysh.gumroad.com/l/sync)**
 
 ![FLAYSync](assets/flaysh-logo.png)
 
@@ -29,8 +29,8 @@ Real-time BPM detection overlay for VJs. Detects tempo from any audio input and 
 
 Download the latest release for your platform:
 
-- **Mac:** [FLAYSync.dmg](https://github.com/flaysh/FLAYSync/releases/latest)
-- **Windows:** [FLAYSync-Setup.exe](https://github.com/flaysh/FLAYSync/releases/latest)
+- **Mac:** [FLAYSync.dmg](https://flaysh.gumroad.com/l/sync)
+- **Windows:** [FLAYSync-Setup.exe](https://flaysh.gumroad.com/l/sync)
 
 ### Build from source
 

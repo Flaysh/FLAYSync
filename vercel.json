@@ -1,6 +1,7 @@
 {
-  "buildCommand": "",
   "installCommand": "",
+  "buildCommand": "",
+  "outputDirectory": "website",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
     {
