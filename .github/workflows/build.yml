@@ -16,10 +16,15 @@ jobs:
         include:
           - os: macos-latest
             build_cmd: pnpm build:mac
+            cl_flags: ''
           - os: windows-2022
             build_cmd: pnpm build:win
+            cl_flags: '/std:c++17'
 
     runs-on: ${{ matrix.os }}
+
+    env:
+      CL: ${{ matrix.cl_flags }}
 
     steps:
       - name: Checkout
