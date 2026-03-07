@@ -25,13 +25,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        run: corepack enable && corepack prepare pnpm@10.25.0 --activate
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+          node-version: 20
 
       - name: Install dependencies
         run: pnpm install
