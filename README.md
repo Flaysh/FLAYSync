@@ -4,7 +4,7 @@ Real-time BPM detection overlay for VJs. Detects tempo from any audio input and 
 
 **[Website](https://sync.flaysh.com)** · **[Download](https://flaysh.gumroad.com/l/sync)** · **[Support / Tip](https://flaysh.gumroad.com/l/sync)**
 
-![FLAYSync](assets/flaysh-logo.png)
+![FLAYSync](assets/FLAYSync-logo.png)
 
 ## Features
 
