@@ -49,7 +49,12 @@
           ]
         }
       ],
-      "category": "public.app-category.music"
+      "category": "public.app-category.music",
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "FLAYSync needs microphone access to detect BPM from audio input."
+      }
     },
     "win": {
       "icon": "assets/icon.ico",
