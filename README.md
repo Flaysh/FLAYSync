@@ -113,6 +113,14 @@ pnpm test
 
 MIT — free and open source.
 
+## Support / Donate
+
+FLAYSync is **100% free** — no trials, no feature gates, no strings attached.
+
+If it saves your set, consider supporting development. Every donation helps keep FLAYSync maintained and improved.
+
+**[Donate on Gumroad](https://flaysh.gumroad.com/l/sync)** — name your price, pay what you want.
+
 ---
 
 Built by [FLAYSH](https://www.instagram.com/flaysh_/)

@@ -336,6 +336,61 @@ body {
   margin-bottom: 32px;
 }
 
+/* ─── Hero CTA Group ─── */
+.hero-cta-group {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cta-btn-donate {
+  color: var(--hot-pink);
+  border-color: var(--hot-pink);
+  background: rgba(255, 45, 123, 0.05);
+}
+
+.cta-btn-donate:hover {
+  background: rgba(255, 45, 123, 0.15);
+  box-shadow: 0 0 30px rgba(255, 45, 123, 0.4), inset 0 0 30px rgba(255, 45, 123, 0.1);
+}
+
+/* ─── Donate Nudge ─── */
+.donate-nudge {
+  margin-top: 32px;
+  padding: 24px 32px;
+  border: 1px solid rgba(255, 45, 123, 0.2);
+  background: rgba(255, 45, 123, 0.03);
+  display: inline-block;
+}
+
+.donate-text {
+  font-size: 14px;
+  color: var(--chrome-dim);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.donate-btn {
+  display: inline-block;
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(14px, 2.5vw, 18px);
+  font-weight: 700;
+  color: var(--hot-pink);
+  border: 2px solid var(--hot-pink);
+  padding: 12px 36px;
+  text-decoration: none;
+  letter-spacing: 0.15em;
+  transition: all 0.3s;
+  background: rgba(255, 45, 123, 0.05);
+}
+
+.donate-btn:hover {
+  background: rgba(255, 45, 123, 0.15);
+  box-shadow: 0 0 30px rgba(255, 45, 123, 0.4), inset 0 0 30px rgba(255, 45, 123, 0.1);
+  transform: translateY(-2px);
+}
+
 .github-link {
   display: inline-block;
   margin-top: 24px;
