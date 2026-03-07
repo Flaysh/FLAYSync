@@ -123,5 +123,5 @@ If it saves your set, consider supporting development. Every donation helps keep
 
 ---
 
-Built by [FLAYSH](https://www.instagram.com/flaysh_/)
+[![FLAYSH](assets/FLAYSync-logo.png)](https://www.instagram.com/flaysh_/)
 

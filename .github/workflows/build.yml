@@ -16,7 +16,7 @@ jobs:
         include:
           - os: macos-latest
             build_cmd: pnpm build:mac
-          - os: windows-2019
+          - os: windows-latest
             build_cmd: pnpm build:win
 
     runs-on: ${{ matrix.os }}
@@ -32,6 +32,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Force C++17 on Windows
+        if: runner.os == 'Windows'
+        run: echo "CL=/std:c++17" >> $env:GITHUB_ENV
 
       - name: Install dependencies
         run: pnpm install
