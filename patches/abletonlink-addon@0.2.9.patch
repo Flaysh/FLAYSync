@@ -1,0 +1,43 @@
+diff --git a/binding.gyp b/binding.gyp
+index 93dab36eb421ef5fbaf662c9aadc5fae4b6e611c..4fb181800f940038c688351647621a93d064f6d1 100644
+--- a/binding.gyp
++++ b/binding.gyp
+@@ -21,15 +21,21 @@
+                 'xcode_settings': {
+ 					'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+ 					'CLANG_CXX_LIBRARY': 'libc++',
+-					'CLANG_CXX_LANGUAGE_STANDARD': 'c++11'
++					'CLANG_CXX_LANGUAGE_STANDARD': 'c++17'
+ 				}
+             }],
+             ['OS=="linux"', {
+-                'defines': ['LINK_PLATFORM_LINUX=1']
++                'defines': ['LINK_PLATFORM_LINUX=1'],
++                'cflags_cc': ['-std=c++17']
+             }],
+             ['OS=="win"', {
+                 'defines': ['LINK_PLATFORM_WINDOWS=1', '_WIN32_WINNT=0x0501'],
+                 'defines!': ['_HAS_EXCEPTIONS=0'],
++                'msvs_settings': {
++                    'VCCLCompilerTool': {
++                        'AdditionalOptions': ['/std:c++17']
++                    }
++                }
+             }],
+         ]
+         }
+diff --git a/link/include/ableton/discovery/PeerGateways.hpp b/link/include/ableton/discovery/PeerGateways.hpp
+index dd5790d472190d6753b9ed86dcf0fb6e55a3a913..71df83f32495a1574c51cb172dbb8e34508abd2a 100644
+--- a/link/include/ableton/discovery/PeerGateways.hpp
++++ b/link/include/ableton/discovery/PeerGateways.hpp
+@@ -35,8 +35,8 @@ class PeerGateways
+ {
+ public:
+   using IoType = typename util::Injected<IoContext>::type;
+-  using Gateway = typename std::result_of<GatewayFactory(
+-    NodeState, util::Injected<IoType&>, asio::ip::address)>::type;
++  using Gateway = std::invoke_result_t<GatewayFactory,
++    NodeState, util::Injected<IoType&>, asio::ip::address>;
+   using GatewayMap = std::map<asio::ip::address, Gateway>;
+ 
+   PeerGateways(const std::chrono::seconds rescanPeriod,

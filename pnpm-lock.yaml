@@ -4,13 +4,18 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  abletonlink-addon@0.2.9:
+    hash: 29a056f9d3f5838149398f2041074e5bc461a606ee443b550ed5e0e73969327d
+    path: patches/abletonlink-addon@0.2.9.patch
+
 importers:
 
   .:
     dependencies:
       abletonlink-addon:
         specifier: ^0.2.9
-        version: 0.2.9
+        version: 0.2.9(patch_hash=29a056f9d3f5838149398f2041074e5bc461a606ee443b550ed5e0e73969327d)
       electron-updater:
         specifier: ^6.8.3
         version: 6.8.3
@@ -2732,7 +2737,7 @@ snapshots:
 
   abbrev@3.0.1: {}
 
-  abletonlink-addon@0.2.9:
+  abletonlink-addon@0.2.9(patch_hash=29a056f9d3f5838149398f2041074e5bc461a606ee443b550ed5e0e73969327d):
     dependencies:
       bindings: 1.5.0
       node-addon-api: 2.0.2

@@ -74,7 +74,10 @@
     "onlyBuiltDependencies": [
       "abletonlink-addon",
       "electron"
-    ]
+    ],
+    "patchedDependencies": {
+      "abletonlink-addon@0.2.9": "patches/abletonlink-addon@0.2.9.patch"
+    }
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.3",
